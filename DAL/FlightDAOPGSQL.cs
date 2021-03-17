@@ -7,11 +7,9 @@ using System.Collections.Generic;
 
 namespace DAL
 {
-    public class FlightDAOPGSQL : IFlightDAO
+    public class FlightDAOPGSQL : BasicDB<Flight>, IFlightDAO
     {
-        private string conn_string = "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;";
-
-        public void Add(Flight flight)
+        public override void Add(Flight flight)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -34,7 +32,7 @@ namespace DAL
             }
         }
 
-        public Flight Get(int id)
+        public override Flight Get(int id)
         {
             Flight flight = new Flight();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -69,7 +67,7 @@ namespace DAL
             return flight;
         }
 
-        public IList<Flight> GetAll()
+        public override IList<Flight> GetAll()
         {
             List<Flight> flights = new List<Flight>();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -355,7 +353,7 @@ namespace DAL
             return flights;
         }
 
-        public void Remove(Flight flight)
+        public override void Remove(Flight flight)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -370,7 +368,7 @@ namespace DAL
             }
         }
 
-        public void Update(Flight flight)
+        public override void Update(Flight flight)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {

@@ -6,11 +6,9 @@ using System.Collections.Generic;
 
 namespace DAL
 {
-    public class CountryDAOPGSQL : ICountryDAO
+    public class CountryDAOPGSQL : BasicDB<Country>, ICountryDAO
     {
-        private string conn_string = "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;";
-
-        public void Add(Country country)
+        public override void Add(Country country)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -25,8 +23,7 @@ namespace DAL
             }
         }
 
-
-        public Country Get(int id)
+        public override Country Get(int id)
         {
             Country country = new Country();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -51,7 +48,7 @@ namespace DAL
             return country;
         }
 
-        public IList<Country> GetAll()
+        public override IList<Country> GetAll()
         {
             List<Country> countries = new List<Country>();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -76,7 +73,7 @@ namespace DAL
             return countries;
         }
 
-        public void Remove(Country country)
+        public override void Remove(Country country)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -91,7 +88,7 @@ namespace DAL
             }
         }
 
-        public void Update(Country country)
+        public override void Update(Country country)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {

@@ -1,0 +1,5 @@
+{
+  "FlightsManagmentSystem": {
+    "ConnectionString": "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;"
+  }
+}

@@ -29,19 +29,19 @@
             <RowDefinition Height="20"></RowDefinition>
 
         </Grid.RowDefinitions>
-        <Label Grid.Column="1" Grid.Row="1" Content="Airline Companies" VerticalAlignment="Center" Margin="0,0,0,0" />
+        <Label Grid.Column="1" Grid.Row="1" Content="Countries" VerticalAlignment="Center" Margin="0,0,0,0" />
         <Label Grid.Column="1" Grid.Row="2" Content="Customers" VerticalAlignment="Center"  Margin="0,0,0,0" />
         <Label Grid.Column="1" Grid.Row="3" Content="Administrators" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <Label Grid.Column="1" Grid.Row="4" Content="Flights Per Company" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <Label Grid.Column="1" Grid.Row="5" Content="Tickets Per Customer" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <Label Grid.Column="1" Grid.Row="6" Content="Countries" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <TextBox Grid.Column="2" Grid.Row="1" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Grid.Column="2" Grid.Row="2" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Grid.Column="2" Grid.Row="3" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Grid.Column="2" Grid.Row="4" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Grid.Column="2" Grid.Row="5" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Grid.Column="2" Grid.Row="6" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <Button Content="Add to DB" Grid.Column="3" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="1" Width="80" VerticalAlignment="Center"/>
+        <Label Grid.Column="1" Grid.Row="4" Content="Airline Companies" VerticalAlignment="Center" Margin="0,0,0,0" />
+        <Label Grid.Column="1" Grid.Row="5" Content="Flights Per Company" VerticalAlignment="Center" Margin="0,0,0,0" />
+        <Label Grid.Column="1" Grid.Row="6" Content="Tickets Per Customer" VerticalAlignment="Center" Margin="0,0,0,0" />
+        <TextBox Name="Countries_Text_Box" Grid.Column="2" Grid.Row="1" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBox Name="Customers_Text_Box" Grid.Column="2" Grid.Row="2" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBox Name="Administrators_Text_Box" Grid.Column="2" Grid.Row="3" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBox Name="Airline_Companies_Text_Box" Grid.Column="2" Grid.Row="4" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBox Name="Flights_Per_Company_Text_Box" Grid.Column="2" Grid.Row="5" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <TextBox Name="Tickets_Per_Customer_Text_Box" Grid.Column="2" Grid.Row="6" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
+        <Button Content="Add to DB" Grid.Column="3" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="1" Width="80" VerticalAlignment="Center" Click="Button_Click"/>
         <Button Content="Replace DB" Grid.Column="3" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="2" Width="80" VerticalAlignment="Center"/>
         <Label Grid.Column="1" Grid.Row="7" Content="Progress" VerticalAlignment="Bottom" Margin="0,0,0,0" />
         <ProgressBar Grid.Column="1" HorizontalAlignment="Stretch" Grid.ColumnSpan="3" Height="20" Margin="0,0,0,0" Grid.Row="8" VerticalAlignment="Center"/>

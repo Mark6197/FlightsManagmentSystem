@@ -1,15 +1,27 @@
 ﻿using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
+using DAL;
 using Domain.Entities;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace BL
 {
     class LoggedInAirlineFacade : AnonymousUserFacade, ILoggedInAirlineFacade
     {
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public LoggedInAirlineFacade() : base()
+        {
+            _userDAO = new UserDAOPGSQL();
+            _airlineDAO = new AirlineDAOPGSQL();
+        }
+
         public void CancelFlight(LoginToken<AirlineCompany> token, Flight flight)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({flight})");
+
             try
             {
                 if (token.User != flight.AirlineCompany)
@@ -17,14 +29,20 @@ namespace BL
 
                 _flightDAO.Remove(flight);
             }
-            catch (NotAllowedAirlineActionException)
+            catch (NotAllowedAirlineActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
         public void ChangeMyPassword(LoginToken<AirlineCompany> token, string oldPassword, string newPassword)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({oldPassword},{newPassword})");
+
             try
             {
                 if (token.User.User.Password != oldPassword)
@@ -39,14 +57,20 @@ namespace BL
 
                 _userDAO.Update(user);
             }
-            catch (WrongPasswordException)
+            catch (WrongPasswordException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
             }
-       }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
+            }
+        }
 
         public void CreateFlight(LoginToken<AirlineCompany> token, Flight flight)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({flight})");
+
             try
             {
                 if (token.User != flight.AirlineCompany)
@@ -54,24 +78,42 @@ namespace BL
 
                 _flightDAO.Add(flight);
             }
-            catch (NotAllowedAirlineActionException)
+            catch (NotAllowedAirlineActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
         public IList<Flight> GetAllFlights(LoginToken<AirlineCompany> token)
         {
-            return _flightDAO.GetFlightsByAirlineCompany(token.User);
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+
+            var result = _flightDAO.GetFlightsByAirlineCompany(token.User);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public IList<Ticket> GetAllTickets(LoginToken<AirlineCompany> token)
         {
-            return _ticketDAO.GetTicketsByAirlineCompany(token.User);
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+
+            var result = _ticketDAO.GetTicketsByAirlineCompany(token.User);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public void MofidyAirlineDetails(LoginToken<AirlineCompany> token, AirlineCompany airlineCompany)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({airlineCompany})");
+
             try
             {
                 if (token.User != airlineCompany)
@@ -79,14 +121,20 @@ namespace BL
 
                 _airlineDAO.Update(airlineCompany);
             }
-            catch (NotAllowedAirlineActionException)
+            catch (NotAllowedAirlineActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
         public void UpdateFlight(LoginToken<AirlineCompany> token, Flight flight)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({flight})");
+
             try
             {
                 if (token.User != flight.AirlineCompany)
@@ -94,9 +142,13 @@ namespace BL
 
                 _flightDAO.Update(flight);
             }
-            catch (NotAllowedAirlineActionException)
+            catch (NotAllowedAirlineActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
     }

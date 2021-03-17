@@ -6,11 +6,9 @@ using System.Collections.Generic;
 
 namespace DAL
 {
-    public class TicketDAOPGSQL : ITicketDAO
+    public class TicketDAOPGSQL : BasicDB<Ticket>, ITicketDAO
     {
-        private string conn_string = "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;";
-
-        public void Add(Ticket ticket)
+        public override void Add(Ticket ticket)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -29,7 +27,7 @@ namespace DAL
             }
         }
 
-        public Ticket Get(int id)
+        public override Ticket Get(int id)
         {
             Ticket ticket = new Ticket();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -77,7 +75,7 @@ namespace DAL
             return ticket;
         }
 
-        public IList<Ticket> GetAll()
+        public override IList<Ticket> GetAll()
         {
             List<Ticket> tickets = new List<Ticket>();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -174,7 +172,7 @@ namespace DAL
             return tickets;
         }
 
-        public void Remove(Ticket ticket)
+        public override void Remove(Ticket ticket)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -189,7 +187,7 @@ namespace DAL
             }
         }
 
-        public void Update(Ticket ticket)
+        public override void Update(Ticket ticket)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {

@@ -1,15 +1,28 @@
 ﻿using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
+using DAL;
 using Domain.Entities;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace BL
 {
-    class LoggedInAdministratorFacade : AnonymousUserFacade, ILoggedInAdministratorFacade
+    public class LoggedInAdministratorFacade : AnonymousUserFacade, ILoggedInAdministratorFacade
     {
-        public void CreateAdmin(LoginToken<Administrator> token, Administrator admin)
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public LoggedInAdministratorFacade() : base()
         {
+            _adminDAO = new AdminDAOPGSQL();
+            _airlineDAO = new AirlineDAOPGSQL();
+            _customerDAO = new CustomerDAOPGSQL();
+        }
+
+        public void CreateNewAdmin(LoginToken<Administrator> token, Administrator admin)
+        {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({admin})");
+
             try
             {
                 if (token.User.Level < 3)
@@ -20,29 +33,49 @@ namespace BL
 
                 _adminDAO.Add(admin);
             }
-            catch (NotAllowedAdminActionException)
+            catch (NotAllowedAdminActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
         public void CreateNewAirline(LoginToken<Administrator> token, AirlineCompany airlineCompany)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({airlineCompany})");
+
             _airlineDAO.Add(airlineCompany);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
         }
 
         public void CreateNewCustomer(LoginToken<Administrator> token, Customer customer)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+
             _customerDAO.Add(customer);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
         }
 
         public IList<Customer> GetAllCustomers(LoginToken<Administrator> token)
         {
-            return _customerDAO.GetAll();
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+
+            var result = _customerDAO.GetAll();
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public void RemoveAdmin(LoginToken<Administrator> token, Administrator admin)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({admin})");
+
             try
             {
                 if (token.User.Level < 3)
@@ -53,14 +86,20 @@ namespace BL
 
                 _adminDAO.Remove(admin);
             }
-            catch (NotAllowedAdminActionException)
+            catch (NotAllowedAdminActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
         public void RemoveAirline(LoginToken<Administrator> token, AirlineCompany airlineCompany)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({airlineCompany})");
+
             try
             {
                 if (token.User.Level == 1)
@@ -68,14 +107,20 @@ namespace BL
 
                 _airlineDAO.Remove(airlineCompany);
             }
-            catch (NotAllowedAdminActionException)
+            catch (NotAllowedAdminActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
         public void RemoveCustomer(LoginToken<Administrator> token, Customer customer)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({customer})");
+
             try
             {
                 if (token.User.Level == 1)
@@ -83,14 +128,20 @@ namespace BL
 
                 _customerDAO.Remove(customer);
             }
-            catch (NotAllowedAdminActionException)
+            catch (NotAllowedAdminActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
         public void UpdateAdmin(LoginToken<Administrator> token, Administrator admin)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({admin})");
+
             try
             {
                 if (token.User.Level < 3)
@@ -101,20 +152,33 @@ namespace BL
 
                 _adminDAO.Update(admin);
             }
-            catch (NotAllowedAdminActionException)
+            catch (NotAllowedAdminActionException ex)
             {
-                throw;
+                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            }
+            finally
+            {
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
         public void UpdateAirlineDetails(LoginToken<Administrator> token, AirlineCompany airlineCompany)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({airlineCompany})");
+
             _airlineDAO.Update(airlineCompany);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
+
         }
 
         public void UpdateCustomerDetails(LoginToken<Administrator> token, Customer customer)
         {
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({customer})");
+
             _customerDAO.Update(customer);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
         }
     }
 }

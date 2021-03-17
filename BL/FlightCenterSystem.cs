@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace BL
 {
@@ -13,7 +14,6 @@ namespace BL
 
         private FlightCenterSystem()
         {
-            
         }
 
         public static FlightCenterSystem GetInstance()
@@ -33,9 +33,9 @@ namespace BL
             return _instance;
         }
 
-        public FacadeBase GetFacade()
-        { 
-            return null;
+        public T GetFacade<T>() where T : FacadeBase, new()
+        {
+            return new T();
         }
 
 

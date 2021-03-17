@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using ConfigurationService;
+using Domain.Entities;
 using Domain.Interfaces;
 using Npgsql;
 using System;
@@ -6,11 +7,9 @@ using System.Collections.Generic;
 
 namespace DAL
 {
-    public class AdminDAOPGSQL : IAdminDAO
+    public class AdminDAOPGSQL : BasicDB<Administrator>, IAdminDAO
     {
-        private string conn_string = "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;";
-
-        public void Add(Administrator admin)
+        public override void Add(Administrator admin)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -31,7 +30,7 @@ namespace DAL
             }
         }
 
-        public Administrator Get(int id)
+        public override Administrator Get(int id)
         {
             Administrator admin = new Administrator();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -107,7 +106,7 @@ namespace DAL
         }
     
 
-        public IList<Administrator> GetAll()
+        public override IList<Administrator> GetAll()
         {
             List<Administrator> administrators = new List<Administrator>();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -142,7 +141,7 @@ namespace DAL
             return administrators;
         }
 
-        public void Remove(Administrator admin)
+        public override void Remove(Administrator admin)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -157,7 +156,7 @@ namespace DAL
             }
         }
 
-        public void Update(Administrator admin)
+        public override void Update(Administrator admin)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {

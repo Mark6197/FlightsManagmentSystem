@@ -15,7 +15,7 @@ namespace BL.Interfaces
         void CreateNewCustomer(LoginToken<Administrator> token, Customer customer);
         void UpdateCustomerDetails(LoginToken<Administrator> token, Customer customer);
         void RemoveCustomer(LoginToken<Administrator> token, Customer customer);
-        void CreateAdmin(LoginToken<Administrator> token, Administrator admin);
+        void CreateNewAdmin(LoginToken<Administrator> token, Administrator admin);
         void UpdateAdmin(LoginToken<Administrator> token, Administrator admin);
         void RemoveAdmin(LoginToken<Administrator> token, Administrator admin);
     }

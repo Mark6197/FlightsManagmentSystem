@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using ConfigurationService;
+using Domain.Entities;
 using Domain.Interfaces;
 using Npgsql;
 using System;
@@ -6,11 +7,9 @@ using System.Collections.Generic;
 
 namespace DAL
 {
-    public class AirlineDAOPGSQL : IAirlineDAO
+    public class AirlineDAOPGSQL : BasicDB<AirlineCompany>, IAirlineDAO
     {
-        private string conn_string = "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;";
-
-        public void Add(AirlineCompany airlineCompany)
+        public override void Add(AirlineCompany airlineCompany)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -30,7 +29,7 @@ namespace DAL
             }
         }
 
-        public AirlineCompany Get(int id)
+        public override AirlineCompany Get(int id)
         {
             AirlineCompany airlineCompany = new AirlineCompany();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -133,7 +132,7 @@ namespace DAL
             return airlineCompany;
         }
 
-        public IList<AirlineCompany> GetAll()
+        public override IList<AirlineCompany> GetAll()
         {
             List<AirlineCompany> airline_companies = new List<AirlineCompany>();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -202,7 +201,7 @@ namespace DAL
             return airline_companies;
         }
 
-        public void Remove(AirlineCompany airlineCompany)
+        public override void Remove(AirlineCompany airlineCompany)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -217,7 +216,7 @@ namespace DAL
             }
         }
 
-        public void Update(AirlineCompany airlineCompany)
+        public override void Update(AirlineCompany airlineCompany)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -237,5 +236,7 @@ namespace DAL
                 command.ExecuteNonQuery();
             }
         }
+
+
     }
 }

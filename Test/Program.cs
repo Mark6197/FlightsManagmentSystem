@@ -1,23 +1,48 @@
 ﻿using BL;
+using BL.Interfaces;
 using BL.LoginService;
+using ConfigurationService;
 using DAL;
 using Domain.Entities;
 using Domain.Interfaces;
+using log4net;
+using log4net.Config;
 using System;
+using System.Configuration;
+using System.IO;
+using System.Reflection;
+using System.Threading;
 
 namespace Test
 {
     class Program
     {
+        private static readonly ILog my_logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         static void Main(string[] args)
         {
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
+            XmlConfigurator.Configure(logRepository, new FileInfo("Log4Net.config"));
+
+            
+            //my_logger.Info("Test again");
+            if (args.Length == 1)
+            {
+                FlightsManagmentSystemConfig.Instance.Init(args[0]);
+            }
+            else
+            {
+                FlightsManagmentSystemConfig.Instance.Init();
+            }
+
             //ICountryDAO countryDAO = new CountryDAOPGSQL();
             //var countries = countryDAO.GetAll();
             //foreach (var country in countries)
             //{
             //    Console.WriteLine(country.ToString());
             //}
-            //var country = countryDAO.Get(2);
+            //var country = countryDAO.Get(3);
+            IAnonymousUserFacade anonymousUserFacade = new AnonymousUserFacade();
+            anonymousUserFacade.GetAllAirlineCompanies();
             //Console.WriteLine(country.ToString());
 
             //countryDAO.Add(new Country("UK"));
@@ -121,8 +146,8 @@ namespace Test
             //    Console.WriteLine(item);
             //}
             //ticketDAO.Update(new Ticket(new Flight { Id = 2 }, new Customer { Id = 1 }, 2));
-            ILoginService service = new LoginService();
-            service.TryLogin("","", out ILoginToken token, out FacadeBase facade);
+            //ILoginService service = new LoginService();
+            //service.TryLogin("", "", out ILoginToken token, out FacadeBase facade);
         }
     }
 }

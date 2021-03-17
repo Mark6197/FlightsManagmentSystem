@@ -6,11 +6,9 @@ using System.Collections.Generic;
 
 namespace DAL
 {
-    public class CustomerDAOPGSQL : ICustomerDAO
+    public class CustomerDAOPGSQL : BasicDB<Customer>, ICustomerDAO
     {
-        private string conn_string = "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;";
-
-        public void Add(Customer customer)
+        public override void Add(Customer customer)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -33,7 +31,7 @@ namespace DAL
             }
         }
 
-        public Customer Get(int id)
+        public override Customer Get(int id)
         {
             Customer airlineCompany = new Customer();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -70,7 +68,7 @@ namespace DAL
             return airlineCompany;
         }
 
-        public IList<Customer> GetAll()
+        public override IList<Customer> GetAll()
         {
             List<Customer> customers = new List<Customer>();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -182,7 +180,7 @@ namespace DAL
             return airlineCompany;
         }
 
-        public void Remove(Customer customer)
+        public override void Remove(Customer customer)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -197,7 +195,7 @@ namespace DAL
             }
         }
 
-        public void Update(Customer customer)
+        public override void Update(Customer customer)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {

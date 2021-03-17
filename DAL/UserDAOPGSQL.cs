@@ -6,12 +6,9 @@ using System.Collections.Generic;
 
 namespace DAL
 {
-    public class UserDAOPGSQL : IUserDAO
+    public class UserDAOPGSQL : BasicDB<User>, IUserDAO
     {
-
-        private string conn_string = "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;";
-
-        public void Add(User user)
+        public override void Add(User user)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -32,7 +29,7 @@ namespace DAL
             }
         }
 
-        public User Get(int id)
+        public override User Get(int id)
         {
             User user = new User();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -60,7 +57,7 @@ namespace DAL
             return user;
         }
 
-        public IList<User> GetAll()
+        public override IList<User> GetAll()
         {
             List<User> users = new List<User>();
             using (var conn = new NpgsqlConnection(conn_string))
@@ -88,7 +85,7 @@ namespace DAL
             return users;
         }
 
-        public void Remove(User user)
+        public override void Remove(User user)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {
@@ -103,7 +100,7 @@ namespace DAL
             }
         }
 
-        public void Update(User user)
+        public override void Update(User user)
         {
             using (var conn = new NpgsqlConnection(conn_string))
             {

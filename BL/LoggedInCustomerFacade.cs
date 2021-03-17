@@ -8,6 +8,11 @@ namespace BL
 {
     class LoggedInCustomerFacade : AnonymousUserFacade, ILoggedInCustomerFacade
     {
+        public LoggedInCustomerFacade():base()
+        {
+
+        }
+
         public void CancelTicket(LoginToken<Customer> token, Ticket ticket)
         {
             try

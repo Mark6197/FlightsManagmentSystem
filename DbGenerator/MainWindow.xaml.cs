@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +24,21 @@ namespace DbGenerator
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
+            if (!int.TryParse(this.Countries_Text_Box.Text, out int countries_count))
+            {
+                if (Regex.IsMatch(this.Countries_Text_Box.Text.ToLower(), @"^random"))
+                {
+
+
+                    //this.Countries_Text_Box.Text.Trim().StartsWith("Random(");
+                }
+            }
+      
         }
     }
 }

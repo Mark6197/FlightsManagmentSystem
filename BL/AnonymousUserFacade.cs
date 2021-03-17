@@ -1,51 +1,109 @@
 ﻿using BL.Interfaces;
+using DAL;
 using Domain.Entities;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Reflection;
 
 namespace BL
 {
     public class AnonymousUserFacade : FacadeBase, IAnonymousUserFacade
     {
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
+        public AnonymousUserFacade()
+        {
+            _airlineDAO = new AirlineDAOPGSQL();
+            _flightDAO = new FlightDAOPGSQL();
+        }
+
         public IList<AirlineCompany> GetAllAirlineCompanies()
         {
-            return _airlineDAO.GetAll();
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+
+            var result = _airlineDAO.GetAll();
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public IList<Flight> GetAllFlights()
         {
-            return _flightDAO.GetAll();
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+
+            var result = _flightDAO.GetAll();
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public Dictionary<Flight, int> GetAllFlightsVacancy()
         {
-            return _flightDAO.GetAllFlightsVacancy();
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+
+            var result = _flightDAO.GetAllFlightsVacancy();
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public Flight GetFlightById(int id)
         {
-            return _flightDAO.Get(id);
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+
+            var result = _flightDAO.Get(id);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate)
         {
-            return _flightDAO.GetFlightsByDepatrureDate(departureDate);
+
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({departureDate})");
+
+            var result = _flightDAO.GetFlightsByDepatrureDate(departureDate);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public IList<Flight> GetFlightsByDestinationCountry(int countryId)
         {
-            return _flightDAO.GetFlightsByDestinationCountry(countryId);
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({countryId})");
+
+            var result = _flightDAO.GetFlightsByDestinationCountry(countryId);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public IList<Flight> GetFlightsByLandingDate(DateTime landingDate)
         {
-            return _flightDAO.GetFlightsByLandingDate(landingDate);
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({landingDate})");
+
+            var result = _flightDAO.GetFlightsByLandingDate(landingDate);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
 
         public IList<Flight> GetFlightsByOriginCountry(int countryId)
         {
-            return _flightDAO.GetFlightsByOriginCountry(countryId);
+            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({countryId})");
+
+            var result = _flightDAO.GetFlightsByOriginCountry(countryId);
+
+            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+
+            return result;
         }
     }
 }
