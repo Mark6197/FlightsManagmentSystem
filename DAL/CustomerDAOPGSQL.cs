@@ -1,18 +1,20 @@
 ﻿using Domain.Entities;
 using Domain.Interfaces;
 using Npgsql;
-using System;
 using System.Collections.Generic;
 
 namespace DAL
 {
     public class CustomerDAOPGSQL : BasicDB<Customer>, ICustomerDAO
     {
-        public override void Add(Customer customer)
+        public override long Add(Customer customer)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_add_customer";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -27,16 +29,25 @@ namespace DAL
                 });
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                var id = command.ExecuteScalar();
+                long id = (long)command.ExecuteScalar();
+
+                return id;
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
 
         public override Customer Get(int id)
         {
-            Customer airlineCompany = new Customer();
-            using (var conn = new NpgsqlConnection(conn_string))
+            Customer customer = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_customer";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -46,7 +57,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    airlineCompany = new Customer
+                    customer = new Customer
                     {
                         Id = (long)reader["customer_id"],
                         FirstName = (string)reader["first_name"],
@@ -64,16 +75,24 @@ namespace DAL
                         }
                     };
                 }
+
+                return customer;
             }
-            return airlineCompany;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public override IList<Customer> GetAll()
         {
             List<Customer> customers = new List<Customer>();
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_all_customers";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -101,16 +120,24 @@ namespace DAL
                             }
                         });
                 }
+
+                return customers;
             }
-            return customers;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public Customer GetCustomerByUsername(string username)
         {
-            Customer airlineCompany = new Customer();
-            using (var conn = new NpgsqlConnection(conn_string))
+            Customer customer = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_customer_by_username";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -120,7 +147,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    airlineCompany = new Customer
+                    customer = new Customer
                     {
                         Id = (long)reader["customer_id"],
                         FirstName = (string)reader["first_name"],
@@ -138,16 +165,24 @@ namespace DAL
                         }
                     };
                 }
+
+                return customer;
             }
-            return airlineCompany;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public Customer GetCustomerByUsernameAndPassword(string username, string password)
         {
-            Customer airlineCompany = new Customer();
-            using (var conn = new NpgsqlConnection(conn_string))
+            Customer customer = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_customer_by_username_and_password";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -158,7 +193,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    airlineCompany = new Customer
+                    customer = new Customer
                     {
                         Id = (long)reader["customer_id"],
                         FirstName = (string)reader["first_name"],
@@ -176,30 +211,45 @@ namespace DAL
                         }
                     };
                 }
+
+                return customer;
             }
-            return airlineCompany;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public override void Remove(Customer customer)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "call sp_remove_customer(@_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("@_id", customer.Id));
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.ExecuteNonQuery();
+
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
 
         public override void Update(Customer customer)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "call sp_update_customer(@_id, @_first_name, @_last_name, @_address, @_phone_number, @_credit_card_number, @_user_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -213,9 +263,13 @@ namespace DAL
                     new NpgsqlParameter("@_credit_card_number", customer.CreditCardNumber),
                     new NpgsqlParameter("@_user_id", customer.User.Id)
                 });
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.ExecuteNonQuery();
+
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
     }

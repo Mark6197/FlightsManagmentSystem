@@ -16,6 +16,8 @@ namespace ConfigurationService
 
         // member according to json file
         public string ConnectionString { get; set; }
+        public int MaxConnections { get; set; }
+        public string WorkTime { get; set; }
 
         private FlightsManagmentSystemConfig()
         {
@@ -42,6 +44,8 @@ namespace ConfigurationService
             JObject all = (JObject)JsonConvert.DeserializeObject(json_string);
             m_configRoot = (JObject)all["FlightsManagmentSystem"];
             ConnectionString = m_configRoot["ConnectionString"].Value<string>();
+            MaxConnections = m_configRoot["MaxConnections"].Value<int>();
+            WorkTime = m_configRoot["WorkTime"].Value<string>();
         }
     }
 }

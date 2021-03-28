@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace BL.Exceptions
 {
     [Serializable]
-    class NotAllowedAdminActionException : Exception
+    public class NotAllowedAdminActionException : Exception
     {
         public NotAllowedAdminActionException()
         {

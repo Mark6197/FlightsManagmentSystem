@@ -8,11 +8,14 @@ namespace DAL
 {
     public class TicketDAOPGSQL : BasicDB<Ticket>, ITicketDAO
     {
-        public override void Add(Ticket ticket)
+        public override long Add(Ticket ticket)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_add_ticket";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -23,16 +26,26 @@ namespace DAL
                 });
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                var id = command.ExecuteScalar();
+                long id = (long)command.ExecuteScalar();
+
+                return id;
+
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
 
         public override Ticket Get(int id)
         {
-            Ticket ticket = new Ticket();
-            using (var conn = new NpgsqlConnection(conn_string))
+            Ticket ticket = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_ticket";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -71,16 +84,24 @@ namespace DAL
                         }
                     };
                 }
+
+                return ticket;
             }
-            return ticket;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public override IList<Ticket> GetAll()
         {
             List<Ticket> tickets = new List<Ticket>();
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_all_tickets";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -119,16 +140,24 @@ namespace DAL
                             }
                         });
                 }
+
+                return tickets;
             }
-            return tickets;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public IList<Ticket> GetTicketsByAirlineCompany(AirlineCompany airlineCompany)
         {
             List<Ticket> tickets = new List<Ticket>();
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_tickets_by_airline_company";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -168,30 +197,45 @@ namespace DAL
                             }
                         });
                 }
+
+                return tickets;
             }
-            return tickets;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public override void Remove(Ticket ticket)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "call sp_remove_ticket(@_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("@_id", ticket.Id));
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.ExecuteNonQuery();
+
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
 
         public override void Update(Ticket ticket)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "call sp_update_ticket(@_id, @_flight_id, @_customer_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -201,9 +245,13 @@ namespace DAL
                     new NpgsqlParameter("@_flight_id", ticket.Flight.Id),
                     new NpgsqlParameter("@_customer_id", ticket.Customer.Id)
                 });
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.ExecuteNonQuery();
+
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
     }

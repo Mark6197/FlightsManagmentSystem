@@ -23,7 +23,7 @@ namespace Test
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("Log4Net.config"));
 
-            
+
             //my_logger.Info("Test again");
             if (args.Length == 1)
             {
@@ -33,16 +33,28 @@ namespace Test
             {
                 FlightsManagmentSystemConfig.Instance.Init();
             }
+            DbConnectionPool.Instance.TestDbConnection();
+            FlightCenterSystem system = FlightCenterSystem.GetInstance();
+            AnonymousUserFacade anonymousUserFacade = system.GetFacade<AnonymousUserFacade>();
+            Console.ReadLine();
+
+
+            //   FlightDAOPGSQL flightDAOPGSQL = new FlightDAOPGSQL();
+            //flightDAOPGSQL.Add(new Flight(new AirlineCompany { Id = 3 }, 4, 4, DateTime.Now.AddHours(-2), DateTime.Now,200));
+            //var x =flightDAOPGSQL.GetFlightsWithTicketsAfterLanding(3 * 60 * 60);
+
 
             //ICountryDAO countryDAO = new CountryDAOPGSQL();
+            //var x=countryDAO.Run_Generic_SP("sp_get_all_countries", new { });
+
             //var countries = countryDAO.GetAll();
             //foreach (var country in countries)
             //{
             //    Console.WriteLine(country.ToString());
             //}
             //var country = countryDAO.Get(3);
-            IAnonymousUserFacade anonymousUserFacade = new AnonymousUserFacade();
-            anonymousUserFacade.GetAllAirlineCompanies();
+            //IAnonymousUserFacade anonymousUserFacade = new AnonymousUserFacade();
+            //anonymousUserFacade.GetAllAirlineCompanies();
             //Console.WriteLine(country.ToString());
 
             //countryDAO.Add(new Country("UK"));

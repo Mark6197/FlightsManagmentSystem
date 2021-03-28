@@ -19,11 +19,11 @@ namespace Domain.Entities
 
         }
 
-        public Flight(AirlineCompany airlineCompany, int originCountryName, int destinationCountryName, DateTime departureTime, DateTime landingTime, int remainingTickets, long id = 0)
+        public Flight(AirlineCompany airlineCompany, int originCountryId, int destinationCountryId, DateTime departureTime, DateTime landingTime, int remainingTickets, long id = 0)
         {
             AirlineCompany = airlineCompany;
-            OriginCountryId = originCountryName;
-            DestinationCountryId = destinationCountryName;
+            OriginCountryId = originCountryId;
+            DestinationCountryId = destinationCountryId;
             DepartureTime = departureTime;
             LandingTime = landingTime;
             RemainingTickets = remainingTickets;

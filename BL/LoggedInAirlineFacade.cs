@@ -8,7 +8,7 @@ using System.Reflection;
 
 namespace BL
 {
-    class LoggedInAirlineFacade : AnonymousUserFacade, ILoggedInAirlineFacade
+    public class LoggedInAirlineFacade : AnonymousUserFacade, ILoggedInAirlineFacade
     {
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -18,7 +18,7 @@ namespace BL
             _airlineDAO = new AirlineDAOPGSQL();
         }
 
-        public void CancelFlight(LoginToken<AirlineCompany> token, Flight flight)
+        public void CancelFlight(LoginToken<AirlineCompany> token, Flight flight)//maybe it's not the best sulotion to delete. what to do with the tickets?????
         {
             _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({flight})");
 
@@ -29,10 +29,10 @@ namespace BL
 
                 _flightDAO.Remove(flight);
             }
-            catch (NotAllowedAirlineActionException ex)
-            {
-                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            }
+            //catch (NotAllowedAirlineActionException ex)
+            //{
+            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            //}
             finally
             {
                 _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
@@ -57,34 +57,35 @@ namespace BL
 
                 _userDAO.Update(user);
             }
-            catch (WrongPasswordException ex)
-            {
-                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            }
+            //catch (WrongPasswordException ex)
+            //{
+            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            //}
             finally
             {
                 _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
             }
         }
 
-        public void CreateFlight(LoginToken<AirlineCompany> token, Flight flight)
+        public long CreateFlight(LoginToken<AirlineCompany> token, Flight flight)
         {
             _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({flight})");
-
+            long flight_id = 0;
             try
             {
-                if (token.User != flight.AirlineCompany)
+                if (token.User != flight.AirlineCompany)//maybe it's better to make here flight.AirlineCompany=token.User?
                     throw new NotAllowedAirlineActionException($"Airline company {token.User.Name} not allowed to add flight {flight.Id} that belongs to {flight.AirlineCompany.Name}");
 
-                _flightDAO.Add(flight);
+                flight_id = _flightDAO.Add(flight);
+                return flight_id;
             }
-            catch (NotAllowedAirlineActionException ex)
-            {
-                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            }
+            //catch (NotAllowedAirlineActionException ex)
+            //{
+            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            //}
             finally
             {
-                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
+                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {flight_id}");
             }
         }
 
@@ -121,10 +122,10 @@ namespace BL
 
                 _airlineDAO.Update(airlineCompany);
             }
-            catch (NotAllowedAirlineActionException ex)
-            {
-                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            }
+            //catch (NotAllowedAirlineActionException ex)
+            //{
+            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            //}
             finally
             {
                 _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
@@ -142,10 +143,10 @@ namespace BL
 
                 _flightDAO.Update(flight);
             }
-            catch (NotAllowedAirlineActionException ex)
-            {
-                _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            }
+            //catch (NotAllowedAirlineActionException ex)
+            //{
+            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            //}
             finally
             {
                 _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");

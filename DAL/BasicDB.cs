@@ -7,13 +7,13 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DAL
 {
-    public abstract class BasicDB<T> : IBasicDB<T> where T : IPoco
+    public abstract class BasicDB<T> : IBasicDB<T> where T : IPoco, new()
     {
         protected string conn_string = FlightsManagmentSystemConfig.Instance.ConnectionString;
 
-        public abstract void Add(T t);
+        public abstract long Add(T t);
 
-        public abstract T Get(int id);
+        public abstract T Get(int id);//maybe should be long?
 
         public abstract IList<T> GetAll();
 
@@ -29,58 +29,60 @@ namespace DAL
             return paraResult.ToArray();
         }
 
-        public List<T1> Run_Generic_SP<T1>(string sp_name, object dataHolder) where T1 : new()
+        public List<T> Run_Generic_SP(string sp_name, object dataHolder)
         {
-            List<T1> result = new List<T1>();
-            NpgsqlParameter[] para = null;
+            List<T> result = new List<T>();
+            NpgsqlParameter[] param = null;
+            NpgsqlConnection conn = null;
+
             try
             {
-                using (var conn = new NpgsqlConnection(conn_string))
+                conn = DbConnectionPool.Instance.GetConnection();
+
+                NpgsqlCommand command = new NpgsqlCommand(sp_name, conn);
+                command.CommandType = System.Data.CommandType.StoredProcedure; // this is default
+
+                param = GetParametersFromDataHolder(dataHolder);
+
+                command.Parameters.AddRange(param);
+
+                var reader = command.ExecuteReader();
+                while (reader.Read())
                 {
-                    conn.Open();
-
-                    NpgsqlCommand command = new NpgsqlCommand(sp_name, conn);
-                    command.CommandType = System.Data.CommandType.StoredProcedure; // this is default
-
-                    para = GetParametersFromDataHolder(dataHolder);
-
-                    command.Parameters.AddRange(para);
-
-                    var reader = command.ExecuteReader();
-                    while (reader.Read())
+                    T one_row = new T();
+                    Type type_of_t = typeof(T);
+                    foreach (var prop in type_of_t.GetProperties())
                     {
-                        T1 one_row = new T1();
-                        Type type_of_t = typeof(T);
-                        foreach (var prop in type_of_t.GetProperties())
-                        {
-                            string column_name = prop.Name;
+                        string column_name = prop.Name;
 
-                            var custom_attr_column_name =
-                                (ColumnAttribute[])prop.GetCustomAttributes(typeof(ColumnAttribute), true);
-                            if (custom_attr_column_name.Length > 0)
-                                column_name = custom_attr_column_name[0].Name;
+                        var custom_attr_column_name =
+                            (ColumnAttribute[])prop.GetCustomAttributes(typeof(ColumnAttribute), true);
+                        if (custom_attr_column_name.Length > 0)
+                            column_name = custom_attr_column_name[0].Name;
 
-                            var value = reader[column_name];
+                        var value = reader[column_name];
 
-                            prop.SetValue(one_row, value);
-                        }
-
-                        result.Add(one_row);
+                        prop.SetValue(one_row, value);
                     }
 
+                    result.Add(one_row);
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
                 string params_string = "";
-                foreach (var item in para)
+                foreach (var item in param)
                 {
                     if (params_string != "")
                         params_string += ", ";
                     params_string += $"Name : {item.ParameterName} value: {item.Value}";
                 }
                 Console.WriteLine($"Function {sp_name} failed. parameters: {params_string}");
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
 
             return result;

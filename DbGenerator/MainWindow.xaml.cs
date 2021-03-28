@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DbGenerator.Exceptions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -28,17 +29,22 @@ namespace DbGenerator
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            string countriesInput = this.Countries_Text_Box.Text.Trim();
 
-            if (!int.TryParse(this.Countries_Text_Box.Text, out int countries_count))
+            if (!int.TryParse(countriesInput, out int countries_count))
             {
-                if (Regex.IsMatch(this.Countries_Text_Box.Text.ToLower(), @"^random"))
+                string[] rangeStr = countriesInput.Split('-');
+                if (rangeStr.Length != 2)
+                    throw new InvalidInputException("Countries Input Not Valid");
+
+                int[] range = new int[2];
+                foreach (var item in rangeStr)
                 {
-
-
-                    //this.Countries_Text_Box.Text.Trim().StartsWith("Random(");
+                   if (!int.TryParse(item, out int num_in_range))
+                    { }
                 }
             }
-      
+
         }
     }
 }

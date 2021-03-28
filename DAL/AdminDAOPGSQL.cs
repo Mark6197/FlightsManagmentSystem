@@ -1,41 +1,61 @@
-﻿using ConfigurationService;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Domain.Interfaces;
 using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace DAL
 {
     public class AdminDAOPGSQL : BasicDB<Administrator>, IAdminDAO
     {
-        public override void Add(Administrator admin)
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        public override long Add(Administrator admin)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_add_administrator";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.AddRange(new NpgsqlParameter[]
                 {
-                    new NpgsqlParameter("_first_name", admin.FirstName),
-                    new NpgsqlParameter("_last_name", admin.LastName),
-                    new NpgsqlParameter("_level", admin.Level),
-                    new NpgsqlParameter("_user_id", admin.User.Id),
+                        new NpgsqlParameter("_first_name", admin.FirstName),
+                        new NpgsqlParameter("_last_name", admin.LastName),
+                        new NpgsqlParameter("_level", admin.Level),
+                        new NpgsqlParameter("_user_id", admin.User.Id),
                 });
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                var id = command.ExecuteScalar();
+                int id = (int)command.ExecuteScalar();
+
+                return id;
+
             }
+            //catch (NpgsqlException ex)
+            //{
+            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
+            //    return 0;
+            //}
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
+
         }
 
         public override Administrator Get(int id)
         {
-            Administrator admin = new Administrator();
-            using (var conn = new NpgsqlConnection(conn_string))
+            Administrator admin = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
                 string procedure = "sp_get_administrator";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -53,24 +73,32 @@ namespace DAL
                         Level = (int)reader["level"],
                         User = new User
                         {
-                            Id= (long)reader["user_id"],
-                            UserName= (string)reader["username"],
-                            Password= (string)reader["password"],
-                            Email= (string)reader["email"],
-                            UserRole=(UserRoles)reader["user_role_id"]
+                            Id = (long)reader["user_id"],
+                            UserName = (string)reader["username"],
+                            Password = (string)reader["password"],
+                            Email = (string)reader["email"],
+                            UserRole = (UserRoles)reader["user_role_id"]
                         }
                     };
                 }
+
+                return admin;
             }
-            return admin;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public Administrator GetAdministratorByUsernameAndPassword(string username, string password)
         {
-            Administrator admin = new Administrator();
-            using (var conn = new NpgsqlConnection(conn_string))
+            Administrator admin = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_administrator_by_username_and_password";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -101,17 +129,26 @@ namespace DAL
                 {
                     return null;
                 }
+
+                return admin;
             }
-            return admin;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
+
         }
-    
+
 
         public override IList<Administrator> GetAll()
         {
             List<Administrator> administrators = new List<Administrator>();
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_all_administrators";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -137,30 +174,46 @@ namespace DAL
                             }
                         });
                 }
+
+                return administrators;
             }
-            return administrators;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
+
         }
 
         public override void Remove(Administrator admin)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "call sp_remove_administrator(@_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("@_id", admin.Id));
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.ExecuteNonQuery();
             }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
+
         }
 
         public override void Update(Administrator admin)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "call sp_update_administrator(@_id, @_first_name, @_last_name, @_level, @_user_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -172,9 +225,12 @@ namespace DAL
                     new NpgsqlParameter("@_level", admin.Level),
                     new NpgsqlParameter("@_user_id", admin.User.Id)
                 });
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.ExecuteNonQuery();
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
     }

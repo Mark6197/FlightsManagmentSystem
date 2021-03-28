@@ -1,4 +1,5 @@
-﻿using log4net;
+﻿using ConfigurationService;
+using log4net;
 using log4net.Config;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
@@ -7,8 +8,9 @@ using System.Reflection;
 namespace BL_Tests
 {
     [TestClass]
-    class AnonymousUserFacadeTests
+    public class AnonymousUserFacadeTests
     {
+        
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         [TestInitialize]
@@ -16,6 +18,21 @@ namespace BL_Tests
         {
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("Log4Net.config"));
+         
+               FlightsManagmentSystemConfig.Instance.Init();
+            
+            InitData();
+        }
+
+        private void InitData()
+        {
+            TestsDAOPGSQL.ClearDB();
+        }
+
+        [TestMethod]
+        public void ReadAllAirlines()
+        {
+            Assert.AreEqual(3, 3);
         }
     }
 }

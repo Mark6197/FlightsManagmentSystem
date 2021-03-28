@@ -6,6 +6,25 @@
         xmlns:local="clr-namespace:DbGenerator"
         mc:Ignorable="d"
         Title="MainWindow" MinHeight="560" MinWidth="450" Height="600" Width="600">
+    <Window.Resources>
+        <Style TargetType="Label" x:Key="LabelStyle">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Grid.Column" Value="1"/>
+        </Style>
+        <Style TargetType="TextBox" x:Key="TextBoxStyle">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+            <Setter Property="Grid.Column" Value="2"/>
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Text" Value="0"/>
+        </Style>
+        <Style TargetType="Button" x:Key="ButtonStyle">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Grid.Column" Value="3"/>
+            <Setter Property="Width" Value="80"/>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20"></ColumnDefinition>
@@ -29,23 +48,92 @@
             <RowDefinition Height="20"></RowDefinition>
 
         </Grid.RowDefinitions>
-        <Label Grid.Column="1" Grid.Row="1" Content="Countries" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <Label Grid.Column="1" Grid.Row="2" Content="Customers" VerticalAlignment="Center"  Margin="0,0,0,0" />
-        <Label Grid.Column="1" Grid.Row="3" Content="Administrators" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <Label Grid.Column="1" Grid.Row="4" Content="Airline Companies" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <Label Grid.Column="1" Grid.Row="5" Content="Flights Per Company" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <Label Grid.Column="1" Grid.Row="6" Content="Tickets Per Customer" VerticalAlignment="Center" Margin="0,0,0,0" />
-        <TextBox Name="Countries_Text_Box" Grid.Column="2" Grid.Row="1" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Name="Customers_Text_Box" Grid.Column="2" Grid.Row="2" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Name="Administrators_Text_Box" Grid.Column="2" Grid.Row="3" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Name="Airline_Companies_Text_Box" Grid.Column="2" Grid.Row="4" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Name="Flights_Per_Company_Text_Box" Grid.Column="2" Grid.Row="5" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <TextBox Name="Tickets_Per_Customer_Text_Box" Grid.Column="2" Grid.Row="6" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,0,0,0" Text="0" TextWrapping="Wrap" VerticalAlignment="Center" Width="120"/>
-        <Button Content="Add to DB" Grid.Column="3" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="1" Width="80" VerticalAlignment="Center" Click="Button_Click"/>
-        <Button Content="Replace DB" Grid.Column="3" HorizontalAlignment="Center" Margin="0,0,0,0" Grid.Row="2" Width="80" VerticalAlignment="Center"/>
-        <Label Grid.Column="1" Grid.Row="7" Content="Progress" VerticalAlignment="Bottom" Margin="0,0,0,0" />
-        <ProgressBar Grid.Column="1" HorizontalAlignment="Stretch" Grid.ColumnSpan="3" Height="20" Margin="0,0,0,0" Grid.Row="8" VerticalAlignment="Center"/>
-        <Label Grid.Column="1" Grid.Row="9" Content="Logging:" VerticalAlignment="Bottom" Margin="0,0,0,0" />
+        <Label Grid.Row="1" Content="Countries">
+            <Label.Style>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelStyle}"/>
+            </Label.Style>
+        </Label>
+        <Label Grid.Row="2" Content="Customers">
+            <Label.Style>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelStyle}"/>
+            </Label.Style>
+        </Label>
+        <Label Grid.Row="3" Content="Administrators">
+            <Label.Style>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelStyle}"/>
+            </Label.Style>
+        </Label>
+        <Label Grid.Row="4" Content="Airline Companies">
+            <Label.Style>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelStyle}"/>
+            </Label.Style>
+        </Label>
+        <Label Grid.Row="5" Content="Flights Per Company">
+            <Label.Style>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelStyle}"/>
+            </Label.Style>
+        </Label>
+        <Label Grid.Row="6" Content="Tickets Per Customer">
+            <Label.Style>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelStyle}"/>
+            </Label.Style>
+        </Label>
+
+        <TextBox Name="Countries_Text_Box" Grid.Row="1">
+            <TextBox.Style>
+                <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}"/>
+            </TextBox.Style>
+        </TextBox>
+        <TextBox Name="Customers_Text_Box" Grid.Row="2">
+            <TextBox.Style>
+                <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}"/>
+            </TextBox.Style>
+        </TextBox>
+        <TextBox Name="Administrators_Text_Box" Grid.Row="3">
+            <TextBox.Style>
+                <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}"/>
+            </TextBox.Style>
+        </TextBox>
+        <TextBox Name="Airline_Companies_Text_Box" Grid.Row="4">
+            <TextBox.Style>
+                <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}"/>
+            </TextBox.Style>
+        </TextBox>
+        <TextBox Name="Flights_Per_Company_Text_Box" Grid.Row="5">
+            <TextBox.Style>
+                <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}"/>
+            </TextBox.Style>
+        </TextBox>
+        <TextBox Name="Tickets_Per_Customer_Text_Box" Grid.Row="6">
+            <TextBox.Style>
+                <Style TargetType="TextBox" BasedOn="{StaticResource TextBoxStyle}"/>
+            </TextBox.Style>
+        </TextBox>
+        <Button Name="Add_To_DB_Btn" Content="Add to DB" Grid.Row="1" Click="Button_Click">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource ButtonStyle}"></Style>
+            </Button.Style>
+        </Button>
+        <Button Name="Replace_DB_Btn" Content="Replace DB" Grid.Row="2">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource ButtonStyle}"></Style>
+            </Button.Style>
+        </Button>
+        <Label Grid.Row="7" Content="Progress">
+            <Label.Style>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelStyle}">
+                    <Setter Property="VerticalAlignment" Value="Bottom"/>
+                </Style>
+            </Label.Style>
+        </Label>
+        <ProgressBar Grid.Column="1" HorizontalAlignment="Stretch" Grid.ColumnSpan="3" Height="20" Grid.Row="8" VerticalAlignment="Center"/>
+        <Label Grid.Row="9" Content="Logging:">
+            <Label.Style>
+                <Style TargetType="Label" BasedOn="{StaticResource LabelStyle}">
+                    <Setter Property="VerticalAlignment" Value="Bottom"/>
+                </Style>
+            </Label.Style>
+        </Label>
         <TextBox Grid.ColumnSpan="3" Grid.Column="1" HorizontalAlignment="Stretch" Margin="0,0,0,15" Grid.Row="10" Text="" TextWrapping="Wrap" VerticalAlignment="Stretch"  />
     </Grid>
 </Window>

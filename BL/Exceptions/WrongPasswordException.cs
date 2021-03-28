@@ -6,7 +6,7 @@ using System.Text;
 namespace BL.Exceptions
 {
     [Serializable]
-    class WrongPasswordException : Exception
+    public class WrongPasswordException : Exception
     {
         public WrongPasswordException()
         {

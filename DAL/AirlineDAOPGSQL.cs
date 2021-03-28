@@ -1,19 +1,20 @@
-﻿using ConfigurationService;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Domain.Interfaces;
 using Npgsql;
-using System;
 using System.Collections.Generic;
 
 namespace DAL
 {
     public class AirlineDAOPGSQL : BasicDB<AirlineCompany>, IAirlineDAO
     {
-        public override void Add(AirlineCompany airlineCompany)
+        public override long Add(AirlineCompany airlineCompany)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_add_airline_company";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -25,16 +26,26 @@ namespace DAL
                 });
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                var id = command.ExecuteScalar();
+                long id = (long)command.ExecuteScalar();
+
+                return id;
+
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
 
         public override AirlineCompany Get(int id)
         {
-            AirlineCompany airlineCompany = new AirlineCompany();
-            using (var conn = new NpgsqlConnection(conn_string))
+            AirlineCompany airlineCompany = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_airline_company";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -59,16 +70,24 @@ namespace DAL
                         }
                     };
                 }
+
+                return airlineCompany;
             }
-            return airlineCompany;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public AirlineCompany GetAirlineByUsername(string username)
         {
-            AirlineCompany airlineCompany = new AirlineCompany();
-            using (var conn = new NpgsqlConnection(conn_string))
+            AirlineCompany airlineCompany = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_airline_company_by_username";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -93,16 +112,24 @@ namespace DAL
                         }
                     };
                 }
+
+                return airlineCompany;
             }
-            return airlineCompany;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public AirlineCompany GetAirlineByUsernameAndPassword(string username, string password)
         {
-            AirlineCompany airlineCompany = new AirlineCompany();
-            using (var conn = new NpgsqlConnection(conn_string))
+            AirlineCompany airlineCompany = null;
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_airline_company_by_username_and_password";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -128,16 +155,24 @@ namespace DAL
                         }
                     };
                 }
+
+                return airlineCompany;
             }
-            return airlineCompany;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public override IList<AirlineCompany> GetAll()
         {
             List<AirlineCompany> airline_companies = new List<AirlineCompany>();
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_all_airline_companies";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -162,16 +197,24 @@ namespace DAL
                             }
                         });
                 }
+
+                return airline_companies;
             }
-            return airline_companies;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public IList<AirlineCompany> GetAllAirlinesByCountry(int countryId)
         {
             List<AirlineCompany> airline_companies = new List<AirlineCompany>();
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "sp_get_all_airline_companies_by_country";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -197,30 +240,45 @@ namespace DAL
                             }
                         });
                 }
+
+                return airline_companies;
             }
-            return airline_companies;
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+            }
         }
 
         public override void Remove(AirlineCompany airlineCompany)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "call sp_remove_airline_company(@_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("@_id", airlineCompany.Id));
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.ExecuteNonQuery();
+
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
 
         public override void Update(AirlineCompany airlineCompany)
         {
-            using (var conn = new NpgsqlConnection(conn_string))
+            NpgsqlConnection conn = null;
+
+            try
             {
-                conn.Open();
+                conn = DbConnectionPool.Instance.GetConnection();
+
                 string procedure = "call sp_update_airline_company(@_id, @_name, @_country_id, @_user_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -231,12 +289,14 @@ namespace DAL
                     new NpgsqlParameter("@_country_id", airlineCompany.CountryId),
                     new NpgsqlParameter("@_user_id", airlineCompany.User.Id)
                 });
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 command.ExecuteNonQuery();
+
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
             }
         }
-
-
     }
 }

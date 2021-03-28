@@ -13,5 +13,6 @@ namespace Domain.Interfaces
         IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate);
         IList<Flight> GetFlightsByLandingDate(DateTime landingDate);
         IList<Flight> GetFlightsByCustomer(Customer customer);
+        IDictionary<Flight,List<Ticket>> GetFlightsWithTicketsAfterLanding(long seconds);
     }
 }

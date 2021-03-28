@@ -2,13 +2,13 @@
 
 namespace Domain.Interfaces
 {
-    public interface IBasicDB<T> where T : IPoco
+    public interface IBasicDB<T> where T : IPoco, new()
     {
-        T Get(int id);
+        T Get(int id);//maybe better as long? 
         IList<T> GetAll();
-        void Add(T t);
+        long Add(T t);
         void Remove(T t);
         void Update(T t);
-        List<T1> Run_Generic_SP<T1>(string sp_name, object dataHolder) where T1 : new();
+        List<T> Run_Generic_SP(string sp_name, object dataHolder);
     }
 }
