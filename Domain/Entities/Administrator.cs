@@ -38,6 +38,7 @@ namespace Domain.Entities
         {
             return !(admin1 == admin2);
         }
+
         public override bool Equals(object obj)
         {
             Administrator admin = obj as Administrator;

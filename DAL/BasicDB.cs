@@ -1,9 +1,11 @@
 ﻿using ConfigurationService;
+using Domain.Entities;
 using Domain.Interfaces;
 using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace DAL
 {
@@ -18,20 +20,72 @@ namespace DAL
         public abstract IList<T> GetAll();
 
         public abstract void Remove(T t);
+
+        /// <summary>
+        /// Generates array of NpgsqlParameter from the dataObject parameters
+        /// </summary>
+        /// <param name="dataObject">Object from which we want to build the parameters array</param>
+        /// <returns></returns>
         private NpgsqlParameter[] GetParametersFromDataHolder(object dataObject)
         {
-            List<NpgsqlParameter> paraResult = new List<NpgsqlParameter>();
-            var props_in_dataObject = dataObject.GetType().GetProperties();
-            foreach (var prop in props_in_dataObject)
+            List<NpgsqlParameter> paraResult = new List<NpgsqlParameter>();//Create new list
+            var props_in_dataObject = dataObject.GetType().GetProperties();//Get all the properties contained in the dataObject type
+            foreach (var prop in props_in_dataObject)//Run over all those properties
             {
-                paraResult.Add(new NpgsqlParameter(prop.Name, prop.GetValue(dataObject)));
+                paraResult.Add(new NpgsqlParameter(prop.Name, prop.GetValue(dataObject)));//For each prop generate new NpgsqlParameter and add it to the list
             }
             return paraResult.ToArray();
         }
 
-        public List<T> Run_Generic_SP(string sp_name, object dataHolder)
+        /// <summary>
+        /// Generates instance of the model with the data read from DB
+        /// </summary>
+        /// <param name="reader">NpgsqlDataReader to read data from DB</param>
+        /// <param name="type">The type from which create instance</param>
+        /// <param name="ignore_user">If the sp don't return a user, but the type has a User property set as true</param>
+        /// <returns></returns>
+        private object GetParametersFromReader(NpgsqlDataReader reader, Type type, bool ignore_user)
         {
-            List<T> result = new List<T>();
+            var instance = Activator.CreateInstance(type);
+
+            foreach (var prop in type.GetProperties())//Run over all the properties of the recieved entity
+            {
+                if (ignore_user && prop.PropertyType == typeof(User))//In case that the sp don't return the user details and one of the properties is indeed User
+                    continue;//Continue to the next prop
+
+
+                if (prop.PropertyType.GetInterfaces().Contains(typeof(IPoco)))//Check if the property is implementing the IPoco interface
+                {
+                    var instance_prop = GetParametersFromReader(reader, prop.PropertyType,ignore_user);//Recursion
+                    prop.SetValue(instance, instance_prop);//After recursion ends set the prop value to the value that was read
+                    continue;//Continue to the next prop
+                }
+
+                string column_name = prop.Name;//Set the column name to read as the property name
+
+                var custom_attr_column_name =
+                    (ColumnAttribute[])prop.GetCustomAttributes(typeof(ColumnAttribute), true);//Get all column attributes of the property
+                if (custom_attr_column_name.Length > 0)//If there is at least one attribute (in this program there won't be 2 column attributes on same prop)
+                    column_name = custom_attr_column_name[0].Name;//Set the column name as the column attribute value
+
+                var value = reader[column_name];//Get the value from DB
+
+                prop.SetValue(instance, value);//Set the prop value as the value that was read
+            }
+
+            return instance;
+        }
+
+        /// <summary>
+        /// Generic method to invoke different stored procedures
+        /// </summary>
+        /// <param name="sp_name">The name of the stored procedure</param>
+        /// <param name="dataHolder">Object that holds all the data that need to be passed to the sp</param>
+        /// <param name="ignore_user">If the sp don't return a user, but the type has a User property set as true</param>
+        /// <returns></returns>
+        public List<T> Run_Generic_SP(string sp_name, object dataHolder, bool ignore_user = false)
+        {
+            List<T> result = new List<T>();//Create a list of object from type T
             NpgsqlParameter[] param = null;
             NpgsqlConnection conn = null;
 
@@ -40,32 +94,18 @@ namespace DAL
                 conn = DbConnectionPool.Instance.GetConnection();
 
                 NpgsqlCommand command = new NpgsqlCommand(sp_name, conn);
-                command.CommandType = System.Data.CommandType.StoredProcedure; // this is default
+                command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                param = GetParametersFromDataHolder(dataHolder);
+                param = GetParametersFromDataHolder(dataHolder);//Get array of NpgsqlParameter
 
-                command.Parameters.AddRange(param);
+                command.Parameters.AddRange(param);//Add all the NpgsqlParameter to the command
 
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    T one_row = new T();
-                    Type type_of_t = typeof(T);
-                    foreach (var prop in type_of_t.GetProperties())
-                    {
-                        string column_name = prop.Name;
+                    T one_row = (T)GetParametersFromReader(reader, typeof(T),ignore_user);//Get one record from the DB
 
-                        var custom_attr_column_name =
-                            (ColumnAttribute[])prop.GetCustomAttributes(typeof(ColumnAttribute), true);
-                        if (custom_attr_column_name.Length > 0)
-                            column_name = custom_attr_column_name[0].Name;
-
-                        var value = reader[column_name];
-
-                        prop.SetValue(one_row, value);
-                    }
-
-                    result.Add(one_row);
+                    result.Add(one_row);//Add the record to the list
                 }
             }
             catch (Exception ex)

@@ -9,6 +9,6 @@ namespace Domain.Interfaces
         long Add(T t);
         void Remove(T t);
         void Update(T t);
-        List<T> Run_Generic_SP(string sp_name, object dataHolder);
+        List<T> Run_Generic_SP(string sp_name, object dataHolder, bool ignore_user=false);
     }
 }

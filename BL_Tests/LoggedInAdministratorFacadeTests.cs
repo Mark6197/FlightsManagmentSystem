@@ -21,6 +21,8 @@ namespace BL_Tests
         private static readonly FlightCenterSystem system = FlightCenterSystem.GetInstance();
         private LoggedInAdministratorFacade administrator_facade;
         private LoginToken<Administrator> administrator_token;
+        private LoggedInAdministratorFacade administrator_level_one_facade;
+        private LoginToken<Administrator> administrator_level_one_token;
 
 
         [TestInitialize]
@@ -42,6 +44,14 @@ namespace BL_Tests
             system.loginService.TryLogin(username, password, out ILoginToken token, out FacadeBase facade);
             administrator_token = token as LoginToken<Administrator>;
             administrator_facade = facade as LoggedInAdministratorFacade;
+        }
+        private void Init_Admin_Level_One_And_Login()
+        {
+            Administrator admin_level_one = TestData.Get_Administrators_Data()[0];
+            int admin_level_one_id = administrator_facade.CreateNewAdmin(administrator_token, admin_level_one);
+            system.loginService.TryLogin(admin_level_one.User.UserName, admin_level_one.User.Password, out ILoginToken token, out FacadeBase facade);
+            administrator_level_one_token = token as LoginToken<Administrator>;
+            administrator_level_one_facade = facade as LoggedInAdministratorFacade;
         }
 
         [TestMethod]
@@ -90,6 +100,31 @@ namespace BL_Tests
             Administrator administrator_from_db = administrator_facade.GetAdminById(administrator_token, admin_id);
 
             TestData.CompareProps(administrator_from_db, demi_administrator);
+        }
+
+        [TestMethod]
+        public void Create_New_Administrator_Using_Level_One_Admin()
+        {
+            Init_Admin_Level_One_And_Login();
+            Administrator demi_administrator = TestData.Get_Administrators_Data()[1];
+            Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_level_one_facade.CreateNewAdmin(administrator_level_one_token, demi_administrator));
+        }
+
+        [TestMethod]
+        public void Create_New_Administrator_With_Level_Four()
+        {
+            Administrator demi_administrator = TestData.Get_Administrators_Data()[0];
+            demi_administrator.Level = 4;
+            Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_facade.CreateNewAdmin(administrator_token, demi_administrator));
+        }
+
+
+        [TestMethod]
+        public void Create_New_Administrator_With_Level_Zero()
+        {
+            Administrator demi_administrator = TestData.Get_Administrators_Data()[0];
+            demi_administrator.Level = 0;
+            Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_facade.CreateNewAdmin(administrator_token, demi_administrator));
         }
 
         [TestMethod]
@@ -366,7 +401,7 @@ namespace BL_Tests
 
             AirlineCompany demi_airline_company = TestData.Get_AirlineCompanies_Data()[0];
 
-            demi_airline_company.CountryId=country_id;
+            demi_airline_company.CountryId = country_id;
             long airline_company_id = administrator_facade.CreateNewAirlineCompany(administrator_token, demi_airline_company);
 
             demi_airline_company.Id = airline_company_id;
@@ -408,6 +443,21 @@ namespace BL_Tests
             Administrator updated_admin = administrator_facade.GetAdminById(administrator_token, admin_id);
 
             TestData.CompareProps(demi_admin, updated_admin);
+        }
+
+        [TestMethod]
+        public void Update_Admin_Using_Level_One_Admin()
+        {
+            Administrator demi_admin = TestData.Get_Administrators_Data()[1];
+
+            int admin_id = administrator_facade.CreateNewAdmin(administrator_token, demi_admin);
+            demi_admin.Id = admin_id;
+            demi_admin.FirstName = "Changed";
+            demi_admin.LastName = "Name";
+            demi_admin.Level = 1;
+
+            Init_Admin_Level_One_And_Login();
+            Assert.ThrowsException<NotAllowedAdminActionException>(()=> administrator_level_one_facade.UpdateAdminDetails(administrator_level_one_token, demi_admin));
         }
 
         [TestMethod]
@@ -459,7 +509,7 @@ namespace BL_Tests
         public void Update_Country()
         {
             Country demi_country = TestData.Get_Countries_Data()[0];
-            int country_id = administrator_facade.CreateNewCountry(administrator_token,demi_country);
+            int country_id = administrator_facade.CreateNewCountry(administrator_token, demi_country);
 
             demi_country.Id = country_id;
             demi_country.Name = "Some other name";
@@ -499,6 +549,17 @@ namespace BL_Tests
             Assert.AreEqual(administrator_facade.GetAllCountries().Count, 0);
         }
 
+        [TestMethod]
+        public void Remove_Country_Using_Level_One_Admin()
+        {
+            Country demi_country = TestData.Get_Countries_Data()[0];
+            int country_id = administrator_facade.CreateNewCountry(administrator_token, demi_country);
+
+            demi_country.Id = country_id;
+
+            Init_Admin_Level_One_And_Login();
+            Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_level_one_facade.RemoveCountry(administrator_level_one_token, demi_country));
+        }
 
         [TestMethod]
         public void Remove_Customer()
@@ -511,6 +572,18 @@ namespace BL_Tests
             administrator_facade.RemoveCustomer(administrator_token, demi_customer);
 
             Assert.AreEqual(administrator_facade.GetAllCustomers(administrator_token).Count, 0);
+        }
+
+        [TestMethod]
+        public void Remove_Customer_Using_Level_One_Admin()
+        {
+            Customer demi_customer = TestData.Get_Customers_Data()[0];
+            long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
+
+            demi_customer.Id = customer_id;
+
+            Init_Admin_Level_One_And_Login();
+            Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_level_one_facade.RemoveCustomer(administrator_level_one_token, demi_customer));
         }
 
         [TestMethod]
@@ -527,9 +600,21 @@ namespace BL_Tests
         }
 
         [TestMethod]
+        public void Remove_Admin_Using_Level_One_Admin()
+        {
+            Administrator demi_admin = TestData.Get_Administrators_Data()[1];
+            int admin_id = administrator_facade.CreateNewAdmin(administrator_token, demi_admin);
+
+            demi_admin.Id = admin_id;
+
+            Init_Admin_Level_One_And_Login();
+            Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_level_one_facade.RemoveAdmin(administrator_level_one_token, demi_admin));
+        }
+
+        [TestMethod]
         public void Remove_Airline_Company()
         {
-            int country_id = administrator_facade.CreateNewCountry(administrator_token,TestData.Get_Countries_Data()[0]);
+            int country_id = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[0]);
 
             AirlineCompany demi_airline_company = TestData.Get_AirlineCompanies_Data()[0];
             demi_airline_company.CountryId = country_id;
@@ -540,6 +625,21 @@ namespace BL_Tests
             administrator_facade.RemoveAirline(administrator_token, demi_airline_company);
 
             Assert.AreEqual(administrator_facade.GetAllAirlineCompanies().Count, 0);
+        }
+
+        [TestMethod]
+        public void Remove_Airline_Company_Using_Level_One_Admin()
+        {
+            int country_id = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[0]);
+
+            AirlineCompany demi_airline_company = TestData.Get_AirlineCompanies_Data()[0];
+            demi_airline_company.CountryId = country_id;
+            long airline_company_id = administrator_facade.CreateNewAirlineCompany(administrator_token, demi_airline_company);
+
+            demi_airline_company.Id = airline_company_id;
+
+            Init_Admin_Level_One_And_Login();
+            Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_level_one_facade.RemoveAirline(administrator_level_one_token, demi_airline_company));
         }
     }
 }

@@ -1,15 +1,21 @@
 ﻿using Domain.Interfaces;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
     public class Customer : IPoco, IUser
     {
+        [Column("customer_id")]
         public long Id { get; set; }
+        [Column("first_name")]
         public string FirstName { get; set; }
+        [Column("last_name")]
         public string LastName { get; set; }
         public string Address { get; set; }
+        [Column("phone_number")]
         public string PhoneNumber { get; set; }
+        [Column("credit_card_number")]
         public string CreditCardNumber { get; set; }
         public User User { get; set; }
 

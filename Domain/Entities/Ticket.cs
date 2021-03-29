@@ -1,10 +1,12 @@
 ﻿using Domain.Interfaces;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
     public class Ticket : IPoco
     {
+        [Column("ticket_id")]
         public long Id { get; set; }
         public Flight Flight { get; set; }
         public Customer Customer { get; set; }

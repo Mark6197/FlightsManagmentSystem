@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace BL.Exceptions
 {
     [Serializable]
-    class NotAllowedCustomerActionException : Exception
+    public class NotAllowedCustomerActionException : Exception
     {
         public NotAllowedCustomerActionException()
         {

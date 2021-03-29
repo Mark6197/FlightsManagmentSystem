@@ -14,13 +14,17 @@ namespace DAL
     public class DbConnectionPool
     {
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //Queue that holds all the connections
         private Queue<NpgsqlConnection> _connections;
+        //The single instance
         private static DbConnectionPool _instance;
         //The key that used for lock in the initialization of the singleton class- that is the reason why this key is static 
         private static object key = new object();
         //The key that used for lock in the methods that gets and returns connection from the pool (GetConnection), there are multiple instances on the connection so for each of them should be their own key
         private object conn_key = new object();
+        //Max connections configured
         private static int MAX_CONN = FlightsManagmentSystemConfig.Instance.MaxConnections;
+        //Connection string configured
         private static string conn_string = FlightsManagmentSystemConfig.Instance.ConnectionString;
 
         private DbConnectionPool()
@@ -134,6 +138,10 @@ namespace DAL
             }
         }
 
+        /// <summary>
+        /// Test if the DB can be connected
+        /// </summary>
+        /// <returns>true if there is connection</returns>
         public bool TestDbConnection()
         {
             _logger.Debug("Testing db access");

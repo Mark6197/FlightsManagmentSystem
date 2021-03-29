@@ -449,16 +449,16 @@ namespace DAL
                 command.Parameters.Add(new NpgsqlParameter("_seconds", seconds_after_landing));
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                var reader = command.ExecuteReader();
+                var reader = command.ExecuteReader();//The sp will return record for each flight and ticket togther, if the flight has no tickets, some of the fields will be null
                 while (reader.Read())
                 {
                     Flight flight = new Flight
                     {
                         Id = (long)reader["flight_id"]
                     };
-                    if (!flights_with_tickets.ContainsKey(flight))
+                    if (!flights_with_tickets.ContainsKey(flight))//Check if the flight already added as key
                     {
-                        flights_with_tickets.Add(
+                        flights_with_tickets.Add(//If not add the flight as key
                             new Flight
                             {
                                 Id = flight.Id,
@@ -472,14 +472,14 @@ namespace DAL
                                 LandingTime = (DateTime)reader["landing_time"],
                                 RemainingTickets = (int)reader["remaining_tickets"]
                             },
-                            new List<Ticket>()
+                            new List<Ticket>()//Creates new list to add as value to the dictionary
                             {
-                                new Ticket
+                                new Ticket//Create new ticket
                                 {
-                                    Id=(reader["ticket_id"]==DBNull.Value? 0:(long)reader["ticket_id"]),
+                                    Id=(reader["ticket_id"]==DBNull.Value? 0:(long)reader["ticket_id"]),//If there are no tickets for the flight the sp will return null and the id will become  
                                     Customer=new Customer
                                     {
-                                        Id=(reader["customer_id"]==DBNull.Value? 0:(long)reader["customer_id"]),
+                                        Id=(reader["customer_id"]==DBNull.Value? 0:(long)reader["customer_id"]),//Same as the id above
                                     },
                                     Flight=new Flight
                                     {
@@ -488,9 +488,9 @@ namespace DAL
                                 }
                             });
                     }
-                    else
+                    else//If the flight is already a key in the dictionary
                     {
-                        flights_with_tickets[flight].Add(
+                        flights_with_tickets[flight].Add(//Add new ticket to the list in the value
                             new Ticket
                             {
                                 Id = (long)reader["ticket_id"],

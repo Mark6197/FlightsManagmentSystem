@@ -16,6 +16,7 @@ namespace BL
         {
             _userDAO = new UserDAOPGSQL();
             _airlineDAO = new AirlineDAOPGSQL();
+            _ticketDAO = new TicketDAOPGSQL();
         }
 
         public void CancelFlight(LoginToken<AirlineCompany> token, Flight flight)//maybe it's not the best sulotion to delete. what to do with the tickets?????
@@ -29,10 +30,7 @@ namespace BL
 
                 _flightDAO.Remove(flight);
             }
-            //catch (NotAllowedAirlineActionException ex)
-            //{
-            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            //}
+
             finally
             {
                 _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
@@ -46,7 +44,6 @@ namespace BL
             try
             {
                 if (token.User.User.Password != oldPassword)
-
                     throw new WrongPasswordException($"User {token.User.User.UserName} tried to update password with wrong old password");
 
                 if (oldPassword == newPassword)
@@ -73,7 +70,7 @@ namespace BL
             long flight_id = 0;
             try
             {
-                if (token.User != flight.AirlineCompany)//maybe it's better to make here flight.AirlineCompany=token.User?
+                if (token.User != flight.AirlineCompany)
                     throw new NotAllowedAirlineActionException($"Airline company {token.User.Name} not allowed to add flight {flight.Id} that belongs to {flight.AirlineCompany.Name}");
 
                 flight_id = _flightDAO.Add(flight);

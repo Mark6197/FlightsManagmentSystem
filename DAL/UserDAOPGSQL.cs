@@ -160,7 +160,6 @@ namespace DAL
                 });
 
                 command.ExecuteNonQuery();
-
             }
             finally
             {

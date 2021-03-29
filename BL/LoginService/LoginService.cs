@@ -72,8 +72,6 @@ namespace BL.LoginService
                 _logger.Info($"{userName} failed to login");
                 return false;
             }
-
-
         }
     }
 }

@@ -17,59 +17,71 @@ namespace BL
     {
 
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        //Single instance of the class
         private static FlightCenterSystem _instance;
+        //Key that is used to lock while creating the instance
         private static readonly object key = new object();
+        //public login service in order to have access to the TryLogin method
         public readonly ILoginService loginService = new LoginService.LoginService();
-        private static string _work_time = FlightsManagmentSystemConfig.Instance.WorkTime;
+        //Get the invokation time of the thread that will run the backup
+        private static string _invokation_time = FlightsManagmentSystemConfig.Instance.WorkTime;
 
 
         private FlightCenterSystem()
         {
+            //Create new thread and pass it a method to run
             Thread thread = new Thread(StoreFlightDetailsHistory);
-            thread.Start(_work_time);
+            //Run the method
+            thread.Start(_invokation_time);
         }
 
+        /// <summary>
+        /// Back-up method that will run each day at a certain time
+        /// </summary>
+        /// <param name="timeSpan">The time of the day the method will run</param>
         private static void StoreFlightDetailsHistory(object timeSpan)
         {
+            //If the format of the invokation time is not correct the method will not run
             if (!TimeSpan.TryParse(timeSpan.ToString(), out TimeSpan ts))
             {
                 _logger.Error("Time to backup flights details history is configured in wrong format");
                 return;
             }
 
+            //check how many seconds left till backup
             double secondsToGo = (ts - DateTime.Now.TimeOfDay).TotalSeconds;
-            if (secondsToGo<0)
+            if (secondsToGo<0)//if the seconds number is negative (meaning the tome is passed for today), add 24 hours
                 secondsToGo += (24 * 60 * 60);
 
-            Thread.Sleep(new TimeSpan(0, 0, (int)secondsToGo));
+            Thread.Sleep(new TimeSpan(0, 0, (int)secondsToGo));//Sleeo till invokation time
             _logger.Debug($"Backup will start in {secondsToGo} seconds");
 
-            while (true)
+            while (true)//will run each 24 hours while the system us up
             {
                 _logger.Info("Starting backup...");
 
                 IFlightDAO flightDAO = new FlightDAOPGSQL();
                 ITicketDAO ticketDAO = new TicketDAOPGSQL();
                 IFlightsTicketsHistoryDAO flightsTicketsHistoryDAO = new FlightsTicketsHistoryDAOPGSQL();
-                var flights_with_tickets = flightDAO.GetFlightsWithTicketsAfterLanding(3 * 60 * 60);
+                var flights_with_tickets = flightDAO.GetFlightsWithTicketsAfterLanding(3 * 60 * 60);//get all flight with tickets that landed 3+ hours ago inside dictionary
                 int flights_count = 0;
                 int tickets_count = 0;
 
-                foreach (Flight flight in flights_with_tickets.Keys)
+                foreach (Flight flight in flights_with_tickets.Keys)//Run over all the keys (flights) in the dictionary
                 {
-                    flightsTicketsHistoryDAO.Add(flight);
+                    flightsTicketsHistoryDAO.Add(flight);//Add the flight to history table
 
-                    foreach (Ticket ticket in flights_with_tickets[flight])
+                    foreach (Ticket ticket in flights_with_tickets[flight])//Run over all the tickets of the flight
                     {
-                        if (ticket.Id != 0)
+                        if (ticket.Id != 0)//If there is no tickets associated with the flight there will be one ticket with id, we don't want to add this ticket to the history
                         {
-                            flightsTicketsHistoryDAO.Add(ticket);
-                            ticketDAO.Remove(ticket);
+                            flightsTicketsHistoryDAO.Add(ticket);//Add ticket to history table
+                            ticketDAO.Remove(ticket);//Remove the ticket from original table
                             tickets_count++;
                         }
                     }
 
-                    flightDAO.Remove(flight);
+                    flightDAO.Remove(flight);//Remove the flight from original table
                     flights_count++;
                 }
 

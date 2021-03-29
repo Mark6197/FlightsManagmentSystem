@@ -1,17 +1,24 @@
 ﻿using Domain.Interfaces;
 using Newtonsoft.Json;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
     public class Flight : IPoco
     {
+        [Column("flight_id")]
         public long Id { get; set; }
         public AirlineCompany AirlineCompany { get; set; }
+        [Column("origin_country_id")]
         public int OriginCountryId { get; set; }
+        [Column("destination_country_id")]
         public int DestinationCountryId { get; set; }
+        [Column("departure_time")]
         public DateTime DepartureTime { get; set; }
+        [Column("landing_time")]
         public DateTime LandingTime { get; set; }
+        [Column("remaining_tickets")]
         public int RemainingTickets { get; set; }
 
         public Flight()

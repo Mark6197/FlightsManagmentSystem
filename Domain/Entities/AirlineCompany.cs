@@ -1,12 +1,16 @@
 ﻿using Domain.Interfaces;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
     public class AirlineCompany : IPoco, IUser
     {
+        [Column("airline_company_id")]
         public long Id { get; set; }
+        [Column("airline_company_name")]
         public string Name { get; set; }
+        [Column("airline_company_country_id")]
         public int CountryId { get; set; }
         public User User { get; set; }
 

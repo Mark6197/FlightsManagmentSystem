@@ -50,7 +50,7 @@ namespace BL_Tests
             {
                new AirlineCompany("El-Al",0,new User("elal","elalelal","elal@elal.com",UserRoles.Airline_Company)),
                new AirlineCompany("Airoflot",0,new User("airoflot","airoflot19","airoflot@airoflot.com",UserRoles.Airline_Company)),
-               new AirlineCompany("Lufthansa",0,new User("lufthansa","lufthansa77","lufthansa@lufthansa.com",UserRoles.Airline_Company)),
+               new AirlineCompany("Lufthansa",0,new User("lufthansa","lufthansa77","lufthansa@lufthansa.com",UserRoles.Airline_Company))
             };
         }
 
@@ -63,10 +63,23 @@ namespace BL_Tests
                 new Flight(null,3,2,DateTime.Now.AddHours(3),DateTime.Now.AddHours(7),78),
                 new Flight(null,1,2,DateTime.Now.AddHours(2),DateTime.Now.AddHours(8),25),//Used in the initializtion of the LoggedInAirlineFacadeTests
                 new Flight(null,2,2,DateTime.Now.AddHours(5),DateTime.Now.AddHours(9),11),//Used in the initializtion of the LoggedInAirlineFacadeTests
+                new Flight(null,1,2,DateTime.Now.AddHours(3),DateTime.Now.AddHours(9),0),//Used in the initializtion of the LoggedInAirlineFacadeTests
+            };
+        }
+        internal static Flight[] Get_Flights_Data_For_Anonymous_Tests()
+        {
+            return new Flight[]
+            {
+                new Flight(null,2,3,DateTime.Now.AddDays(1),DateTime.Now.AddDays(3),50),
+                new Flight(null,1,3,DateTime.Now.AddDays(1),DateTime.Now.AddDays(2),120),
+                new Flight(null,3,2,DateTime.Now.AddDays(2),DateTime.Now.AddDays(3),78),
+                new Flight(null,1,2,DateTime.Now.AddDays(4),DateTime.Now.AddDays(5),25),//Used in the initializtion of the LoggedInAirlineFacadeTests
+                new Flight(null,2,2,DateTime.Now.AddDays(1),DateTime.Now.AddDays(2),11),//Used in the initializtion of the LoggedInAirlineFacadeTests
+                new Flight(null,1,2,DateTime.Now.AddDays(3),DateTime.Now.AddDays(5),0),//Used in the initializtion of the LoggedInAirlineFacadeTests
             };
         }
 
-        internal static void CompareProps(object object_a, object object_b)
+        internal static void CompareProps(object object_a, object object_b,bool ignore_user=false)
         {
 
             Type type_a = object_a.GetType();
@@ -77,10 +90,13 @@ namespace BL_Tests
 
             for (int i = 0; i < props_a.Length; i++)
             {
-                Type prop_type = props_a[i].GetValue(object_a).GetType();
+                Type prop_type = props_a[i].PropertyType;
+                if (ignore_user && prop_type == typeof(User))
+                    continue;
+
                 if (prop_type.GetInterfaces().Contains(typeof(IPoco)))
                 {
-                    CompareProps(props_a[i].GetValue(object_a), props_a[i].GetValue(object_b));
+                    CompareProps(props_a[i].GetValue(object_a), props_a[i].GetValue(object_b), ignore_user);
                 }
                 else if(prop_type==typeof(DateTime))
                 {

@@ -61,8 +61,8 @@ namespace BL_Tests
             system.loginService.TryLogin(TestData.Get_Customers_Data()[0].User.UserName, TestData.Get_Customers_Data()[0].User.Password, out ILoginToken customer_token, out FacadeBase customer_facade);
             LoggedInCustomerFacade loggedInCustomerFacade = customer_facade as LoggedInCustomerFacade;
             LoginToken<Customer> customerLoginToken = customer_token as LoginToken<Customer>;
-            //loggedInCustomerFacade.PurchaseTicket(customerLoginToken, flight);
-            //loggedInCustomerFacade.PurchaseTicket(customerLoginToken, flight2);
+            loggedInCustomerFacade.PurchaseTicket(customerLoginToken, flight);
+            loggedInCustomerFacade.PurchaseTicket(customerLoginToken, flight2);
         }
 
         private void Login()
@@ -81,9 +81,8 @@ namespace BL_Tests
             Assert.AreEqual(flight_id, 3);
             demi_flight.Id = flight_id;
             Flight flight_from_db = airline_facade.GetFlightById((int)flight_id);
-            flight_from_db.AirlineCompany.User = airline_token.User.User;//this line is added due to the sp dont return the user details
 
-            TestData.CompareProps(flight_from_db, demi_flight);
+            TestData.CompareProps(flight_from_db, demi_flight,true);
         }
 
         [TestMethod]
@@ -107,9 +106,7 @@ namespace BL_Tests
             
             for (int i = 2; i < flights_from_db.Count; i++)
             {
-                flights_from_db[i].AirlineCompany.User = airline_token.User.User;//this line is added due to the sp dont return the user details
-
-                TestData.CompareProps(flights_from_db[i], demi_flights[i-2]);
+                TestData.CompareProps(flights_from_db[i], demi_flights[i-2],true);
             }
         }
 
@@ -129,9 +126,8 @@ namespace BL_Tests
             airline_facade.UpdateFlight(airline_token, demi_flight);
 
             Flight flight_from_db = airline_facade.GetFlightById((int)flight_id);
-            flight_from_db.AirlineCompany.User = airline_token.User.User;//this line is added due to the sp dont return the user details
 
-            TestData.CompareProps(flight_from_db, demi_flight);
+            TestData.CompareProps(flight_from_db, demi_flight,true);
         }
 
         [TestMethod]//Need to create a test method what will check if flight can be removed also when there are tickets associated with it
@@ -181,6 +177,13 @@ namespace BL_Tests
             AirlineCompany airline_from_db = airline_facade.GetAirlineCompanyById(airlineCompany.Id);
 
             TestData.CompareProps(airlineCompany, airline_from_db);
+        }
+
+        [TestMethod]
+        public void Get_List_Of_Tickets()
+        {
+            IList<Ticket> tickets = airline_facade.GetAllTickets(airline_token);
+            Assert.AreEqual(tickets.Count, 2);
         }
     }
 }

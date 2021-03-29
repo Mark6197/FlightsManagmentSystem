@@ -31,7 +31,7 @@ namespace BL
                 if (token.User.Level < 3)
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to add other admins. Admin's level is {token.User.Level}");
 
-                if (admin.Level > 3)
+                if (admin.Level > 3 || admin.Level < 1)
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} (level: {token.User.Level}) now allowed to add the following admin: {admin.User.UserName} (level {admin.Level})");
 
                 //Check if user role of user is indeed admin?
