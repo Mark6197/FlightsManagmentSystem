@@ -20,6 +20,11 @@ namespace BL_Tests
         private static readonly FlightCenterSystem system = FlightCenterSystem.GetInstance();
         private AnonymousUserFacade anonymous_facade;
 
+        [AssemblyCleanup()]
+        public static void AssemblyCleanup()
+        {
+            TestsDAOPGSQL.ClearDB();
+        }
 
         [TestInitialize]
         public void Initialize()
