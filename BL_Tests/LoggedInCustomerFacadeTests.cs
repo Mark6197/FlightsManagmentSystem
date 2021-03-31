@@ -39,7 +39,7 @@ namespace BL_Tests
         {
             string username = "admin";
             string password = "9999";
-            system.loginService.TryLogin(username, password, out ILoginToken admin_token, out FacadeBase admin_facade);
+            system.TryLogin(username, password, out ILoginToken admin_token, out FacadeBase admin_facade);
             LoggedInAdministratorFacade loggedInAdministratorFacade = admin_facade as LoggedInAdministratorFacade;
             LoginToken<Administrator> adminLoginToken = admin_token as LoginToken<Administrator>;
             int country_id = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[0]);
@@ -51,7 +51,7 @@ namespace BL_Tests
             AirlineCompany airlineCompany = TestData.Get_AirlineCompanies_Data()[0];
             airlineCompany.CountryId = country_id;
             loggedInAdministratorFacade.CreateNewAirlineCompany(adminLoginToken, airlineCompany);
-            system.loginService.TryLogin(airlineCompany.User.UserName, airlineCompany.User.Password, out ILoginToken airline_token, out FacadeBase airline_facade);
+            system.TryLogin(airlineCompany.User.UserName, airlineCompany.User.Password, out ILoginToken airline_token, out FacadeBase airline_facade);
             LoggedInAirlineFacade loggedInAirlineFacade = airline_facade as LoggedInAirlineFacade;
             LoginToken<AirlineCompany> airlineLoginToken = airline_token as LoginToken<AirlineCompany>;
             Flight flight = TestData.Get_Flights_Data()[3];
@@ -67,7 +67,7 @@ namespace BL_Tests
             flight2.Id = flight_id2;
             flight3.Id = flight_id3;
 
-            system.loginService.TryLogin(TestData.Get_Customers_Data()[1].User.UserName, TestData.Get_Customers_Data()[1].User.Password, out ILoginToken token, out FacadeBase facade);
+            system.TryLogin(TestData.Get_Customers_Data()[1].User.UserName, TestData.Get_Customers_Data()[1].User.Password, out ILoginToken token, out FacadeBase facade);
             LoginToken<Customer> cust_token = token as LoginToken<Customer>;
             LoggedInCustomerFacade cust_facade = facade as LoggedInCustomerFacade;
             cust_facade.PurchaseTicket(cust_token, flight);
@@ -78,7 +78,7 @@ namespace BL_Tests
 
         private void Login(string user_name, string password)
         {
-            system.loginService.TryLogin(user_name, password, out ILoginToken token, out FacadeBase facade);
+            system.TryLogin(user_name, password, out ILoginToken token, out FacadeBase facade);
             customer_token = token as LoginToken<Customer>;
             customer_facade = facade as LoggedInCustomerFacade;
         }

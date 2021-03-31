@@ -73,5 +73,22 @@ namespace BL.LoginService
                 return false;
             }
         }
+
+        public bool IsValidUserNameAndPassword(string username, string password)
+        {
+            Administrator admin = _adminDAO.GetAdministratorByUsernameAndPassword(username, password);
+            if (admin != null)
+                return true;
+
+            Customer customer = _customerDAO.GetCustomerByUsernameAndPassword(username, password);
+            if (customer != null)
+                return true;
+
+            AirlineCompany airlineCompany = _airlineDAO.GetAirlineByUsernameAndPassword(username, password);
+            if (airlineCompany != null)
+                return true;
+
+            return false;
+        }
     }
 }

@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace BL
 {
-    public class FlightCenterSystem
+    public class FlightCenterSystem : IFlightCenterSystem
     {
 
         private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -22,7 +22,7 @@ namespace BL
         //Key that is used to lock while creating the instance
         private static readonly object key = new object();
         //public login service in order to have access to the TryLogin method
-        public readonly ILoginService loginService = new LoginService.LoginService();
+        private readonly ILoginService loginService = new LoginService.LoginService();
         //Get the invokation time of the thread that will run the backup
         private static string _invokation_time = FlightsManagmentSystemConfig.Instance.WorkTime;
 
@@ -50,7 +50,7 @@ namespace BL
 
             //check how many seconds left till backup
             double secondsToGo = (ts - DateTime.Now.TimeOfDay).TotalSeconds;
-            if (secondsToGo<0)//if the seconds number is negative (meaning the tome is passed for today), add 24 hours
+            if (secondsToGo < 0)//if the seconds number is negative (meaning the tome is passed for today), add 24 hours
                 secondsToGo += (24 * 60 * 60);
 
             Thread.Sleep(new TimeSpan(0, 0, (int)secondsToGo));//Sleeo till invokation time
@@ -110,6 +110,22 @@ namespace BL
         public T GetFacade<T>() where T : FacadeBase, new()
         {
             return new T();
+        }
+
+        public bool TryLogin(string user_name, string password, out ILoginToken token, out FacadeBase facade)
+        {
+            token = null;
+            facade = GetFacade<AnonymousUserFacade>();
+
+            bool is_success=loginService.TryLogin(user_name, password, out ILoginToken login_token, out FacadeBase facade_base);
+
+            if (is_success)
+            {
+                token = login_token;
+                facade = facade_base;
+            }
+
+            return is_success;
         }
     }
 }

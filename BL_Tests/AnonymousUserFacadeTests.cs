@@ -44,7 +44,7 @@ namespace BL_Tests
             TestsDAOPGSQL.ClearDB();
             string username = "admin";
             string password = "9999";
-            system.loginService.TryLogin(username, password, out ILoginToken admin_token, out FacadeBase admin_facade);
+            system.TryLogin(username, password, out ILoginToken admin_token, out FacadeBase admin_facade);
             LoggedInAdministratorFacade loggedInAdministratorFacade = admin_facade as LoggedInAdministratorFacade;
             LoginToken<Administrator> adminLoginToken = admin_token as LoginToken<Administrator>;
             int country_id = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[0]);
@@ -54,7 +54,7 @@ namespace BL_Tests
             AirlineCompany airlineCompany = TestData.Get_AirlineCompanies_Data()[0];
             airlineCompany.CountryId = country_id;
             loggedInAdministratorFacade.CreateNewAirlineCompany(adminLoginToken, airlineCompany);
-            system.loginService.TryLogin(TestData.Get_AirlineCompanies_Data()[0].User.UserName, TestData.Get_AirlineCompanies_Data()[0].User.Password, out ILoginToken token, out FacadeBase facade);
+            system.TryLogin(TestData.Get_AirlineCompanies_Data()[0].User.UserName, TestData.Get_AirlineCompanies_Data()[0].User.Password, out ILoginToken token, out FacadeBase facade);
             LoginToken<AirlineCompany> airline_token = token as LoginToken<AirlineCompany>;
             LoggedInAirlineFacade airline_facade = facade as LoggedInAirlineFacade;
             Flight flight = TestData.Get_Flights_Data_For_Anonymous_Tests()[0];

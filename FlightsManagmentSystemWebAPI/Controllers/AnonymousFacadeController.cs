@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using BL;
+using BL.Interfaces;
+using Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -11,53 +14,123 @@ namespace FlightsManagmentSystemWebAPI.Controllers
     [ApiController]
     public class AnonymousFacadeController : ControllerBase
     {
-        [HttpGet]
-        IActionResult GetAllFlights()
+        private readonly IFlightCenterSystem _flightCenterSystem= FlightCenterSystem.GetInstance();
+        private readonly IAnonymousUserFacade _anonymousUserFacade;
+
+        public AnonymousFacadeController()
         {
-            throw new NotImplementedException();
+            //_flightCenterSystem = flightCenterSystem;
+            _anonymousUserFacade = _flightCenterSystem.GetFacade<AnonymousUserFacade>();
         }
 
-        [HttpGet]
-        IActionResult GetAllAirlineCompanies()
+        [HttpGet("GetAllFlights")]
+        public IActionResult GetAllFlights()
         {
-            throw new NotImplementedException();
+            IList<Flight> flights=_anonymousUserFacade.GetAllFlights();
+            if (flights.Count == 0)
+                return NoContent();
+
+            return Ok(flights);        
         }
 
-        [HttpGet]
-        IActionResult GetAllFlightsVacancy()
+        [HttpGet("GetAllAirlineCompanies")]
+        public IActionResult GetAllAirlineCompanies()
         {
-            throw new NotImplementedException();
+            IList<AirlineCompany> airlineCompanies = _anonymousUserFacade.GetAllAirlineCompanies();
+            if (airlineCompanies.Count == 0)
+                return NoContent();
+
+            return Ok(airlineCompanies);
         }
 
-        [HttpGet]
-        IActionResult GetFlightById(int id)
+        [HttpGet("GetAllFlightsVacancy")]
+        public IActionResult GetAllFlightsVacancy()
         {
-            throw new NotImplementedException();
+            IDictionary<Flight,int> flights_vacancy = _anonymousUserFacade.GetAllFlightsVacancy();
+            if (flights_vacancy.Count == 0)
+                return NoContent();
 
+            return Ok(flights_vacancy);
         }
 
-        [HttpGet]
-        IActionResult GetFlightsByOriginCountry(int countryCode)
+        [HttpGet("GetAllCountries")]
+        public IActionResult GetAllCountries()
         {
-            throw new NotImplementedException();
+            IList<Country> countries = _anonymousUserFacade.GetAllCountries();
+            if (countries.Count == 0)
+                return NoContent();
+
+            return Ok(countries);
         }
 
-        [HttpGet]
-        IActionResult GetFlightsByDestinationCountry(int countryCode)
+        [HttpGet("GetAirlineCompanyById")]
+        public IActionResult GetAirlineCompanyById(int id)//maybe change to long later
         {
-            throw new NotImplementedException();
+            AirlineCompany airlineCompany = _anonymousUserFacade.GetAirlineCompanyById(id);
+            if (airlineCompany == null)
+                return NotFound();
+
+            return Ok(airlineCompany);
         }
 
-        [HttpGet]
-        IActionResult GetFlightsByDepatrureDate(DateTime departureDate)
+        [HttpGet("GetFlightById")]
+        public IActionResult GetFlightById(int id)//maybe change to long later
         {
-            throw new NotImplementedException();
+            Flight flight = _anonymousUserFacade.GetFlightById(id);
+            if (flight == null)
+                return NotFound();
+
+            return Ok(flight);
         }
 
-        [HttpGet]
-        IActionResult GetFlightsByLandingDate(DateTime landingDate)
+        [HttpGet("GetCountryById")]
+        public IActionResult GetCountryById(int id)
         {
-            throw new NotImplementedException();
+            Country country = _anonymousUserFacade.GetCountryById(id);
+            if (country == null)
+                return NotFound();
+
+            return Ok(country);
+        }
+
+        [HttpGet("GetFlightsByOriginCountry")]
+        public IActionResult GetFlightsByOriginCountry(int countryId)
+        {
+            IList<Flight> flights = _anonymousUserFacade.GetFlightsByOriginCountry(countryId);
+            if (flights.Count == 0)
+                return NoContent();
+
+            return Ok(flights);
+        }
+
+        [HttpGet("GetFlightsByDestinationCountry")]
+        public IActionResult GetFlightsByDestinationCountry(int countryId)
+        {
+            IList<Flight> flights = _anonymousUserFacade.GetFlightsByDestinationCountry(countryId);
+            if (flights.Count == 0)
+                return NoContent();
+
+            return Ok(flights);
+        }
+
+        [HttpGet("GetFlightsByDepatrureDate")]
+        public IActionResult GetFlightsByDepatrureDate(DateTime departureDate)
+        {
+            IList<Flight> flights = _anonymousUserFacade.GetFlightsByDepatrureDate(departureDate);
+            if (flights.Count == 0)
+                return NoContent();
+
+            return Ok(flights);
+        }
+
+        [HttpGet("GetFlightsByLandingDate")]
+        public IActionResult GetFlightsByLandingDate(DateTime landingDate)
+        {
+            IList<Flight> flights = _anonymousUserFacade.GetFlightsByLandingDate(landingDate);
+            if (flights.Count == 0)
+                return NoContent();
+
+            return Ok(flights);
         }
     }
 }

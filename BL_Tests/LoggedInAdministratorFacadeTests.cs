@@ -41,7 +41,7 @@ namespace BL_Tests
         {
             string username = "admin";
             string password = "9999";
-            system.loginService.TryLogin(username, password, out ILoginToken token, out FacadeBase facade);
+            system.TryLogin(username, password, out ILoginToken token, out FacadeBase facade);
             administrator_token = token as LoginToken<Administrator>;
             administrator_facade = facade as LoggedInAdministratorFacade;
         }
@@ -49,7 +49,7 @@ namespace BL_Tests
         {
             Administrator admin_level_one = TestData.Get_Administrators_Data()[0];
             int admin_level_one_id = administrator_facade.CreateNewAdmin(administrator_token, admin_level_one);
-            system.loginService.TryLogin(admin_level_one.User.UserName, admin_level_one.User.Password, out ILoginToken token, out FacadeBase facade);
+            system.TryLogin(admin_level_one.User.UserName, admin_level_one.User.Password, out ILoginToken token, out FacadeBase facade);
             administrator_level_one_token = token as LoginToken<Administrator>;
             administrator_level_one_facade = facade as LoggedInAdministratorFacade;
         }
@@ -59,7 +59,7 @@ namespace BL_Tests
         {
             string username = "admin";
             string password = "9999";
-            bool result = system.loginService.TryLogin(username, password, out ILoginToken token, out FacadeBase facade);
+            bool result = system.TryLogin(username, password, out ILoginToken token, out FacadeBase facade);
             Assert.IsTrue(result);
             Assert.AreEqual(0, administrator_token.User.Id);
             Assert.AreEqual("Admin", administrator_token.User.FirstName);
@@ -77,14 +77,14 @@ namespace BL_Tests
         {
             string username = "adminn";
             string password = "9999";
-            bool result = system.loginService.TryLogin(username, password, out ILoginToken token, out FacadeBase anonymous_facade);
+            bool result = system.TryLogin(username, password, out ILoginToken token, out FacadeBase anonymous_facade);
             Assert.IsFalse(result);
             Assert.IsNull(token);
             Assert.IsInstanceOfType(anonymous_facade, typeof(AnonymousUserFacade));
 
             username = "admin";
             password = "99999";
-            bool result2 = system.loginService.TryLogin(username, password, out ILoginToken token2, out FacadeBase anonymous_facade2);
+            bool result2 = system.TryLogin(username, password, out ILoginToken token2, out FacadeBase anonymous_facade2);
             Assert.IsFalse(result2);
             Assert.IsNull(token2);
             Assert.IsInstanceOfType(anonymous_facade2, typeof(AnonymousUserFacade));

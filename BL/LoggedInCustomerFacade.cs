@@ -108,7 +108,6 @@ namespace BL
 
                 flight_from_db.RemainingTickets--;//Remove one ticket from the remaining tickets
                 _flightDAO.Update(flight_from_db);//Update the flight
-
             }
 
             ticket = new Ticket(flight_from_db, token.User);//Create new ticket

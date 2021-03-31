@@ -38,7 +38,7 @@ namespace BL_Tests
         {
             string username = "admin";
             string password = "9999";
-            system.loginService.TryLogin(username, password, out ILoginToken admin_token, out FacadeBase admin_facade);
+            system.TryLogin(username, password, out ILoginToken admin_token, out FacadeBase admin_facade);
             LoggedInAdministratorFacade loggedInAdministratorFacade = admin_facade as LoggedInAdministratorFacade;
             LoginToken<Administrator> adminLoginToken = admin_token as LoginToken<Administrator>;
             int country_id = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[0]);
@@ -58,7 +58,7 @@ namespace BL_Tests
             flight.Id = flight_id;
             flight2.Id = flight_id2;
 
-            system.loginService.TryLogin(TestData.Get_Customers_Data()[0].User.UserName, TestData.Get_Customers_Data()[0].User.Password, out ILoginToken customer_token, out FacadeBase customer_facade);
+            system.TryLogin(TestData.Get_Customers_Data()[0].User.UserName, TestData.Get_Customers_Data()[0].User.Password, out ILoginToken customer_token, out FacadeBase customer_facade);
             LoggedInCustomerFacade loggedInCustomerFacade = customer_facade as LoggedInCustomerFacade;
             LoginToken<Customer> customerLoginToken = customer_token as LoginToken<Customer>;
             loggedInCustomerFacade.PurchaseTicket(customerLoginToken, flight);
@@ -67,7 +67,7 @@ namespace BL_Tests
 
         private void Login()
         {
-            system.loginService.TryLogin(TestData.Get_AirlineCompanies_Data()[0].User.UserName, TestData.Get_AirlineCompanies_Data()[0].User.Password, out ILoginToken token, out FacadeBase facade);
+            system.TryLogin(TestData.Get_AirlineCompanies_Data()[0].User.UserName, TestData.Get_AirlineCompanies_Data()[0].User.Password, out ILoginToken token, out FacadeBase facade);
             airline_token = token as LoginToken<AirlineCompany>;
             airline_facade = facade as LoggedInAirlineFacade;
         }
