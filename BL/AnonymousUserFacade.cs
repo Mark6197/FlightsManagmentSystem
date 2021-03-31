@@ -11,6 +11,14 @@ namespace BL
     {
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        public void Execute<T>(Func<T> func, object props)
+        {
+            //_logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({id})");
+
+            //T result = _airlineDAO.Get(id);
+
+            //_logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+        }
 
         public AnonymousUserFacade()
         {
@@ -24,7 +32,7 @@ namespace BL
 
             _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({id})");
 
-            var result = _airlineDAO.Get((int)id);
+            var result = _airlineDAO.Get(id);
 
             _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
 
@@ -87,7 +95,7 @@ namespace BL
             return result;
         }
 
-        public Flight GetFlightById(int id)
+        public Flight GetFlightById(long id)
         {
             _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
 

@@ -37,7 +37,7 @@ namespace DAL
             }
         }
 
-        public override AirlineCompany Get(int id)
+        public override AirlineCompany Get(long id)
         {
             AirlineCompany airlineCompany = null;
             NpgsqlConnection conn = null;

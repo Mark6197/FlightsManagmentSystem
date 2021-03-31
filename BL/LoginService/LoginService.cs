@@ -1,4 +1,5 @@
-﻿using DAL;
+﻿using BL.Exceptions;
+using DAL;
 using Domain.Entities;
 using Domain.Interfaces;
 using log4net;

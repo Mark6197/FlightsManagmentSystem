@@ -15,7 +15,7 @@ namespace DAL
 
         public abstract long Add(T t);
 
-        public abstract T Get(int id);//maybe should be long?
+        public abstract T Get(long id);
 
         public abstract IList<T> GetAll();
 

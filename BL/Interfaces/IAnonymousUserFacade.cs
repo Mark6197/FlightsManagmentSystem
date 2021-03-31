@@ -10,7 +10,7 @@ namespace BL.Interfaces
         IList<Country> GetAllCountries();
         IList<AirlineCompany> GetAllAirlineCompanies();
         Dictionary<Flight, int> GetAllFlightsVacancy();
-        Flight GetFlightById(int id);
+        Flight GetFlightById(long id);
         Country GetCountryById(int id); 
         AirlineCompany GetAirlineCompanyById(long id);
         IList<Flight> GetFlightsByOriginCountry(int countryId);

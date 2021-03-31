@@ -48,7 +48,7 @@ namespace DAL
 
         }
 
-        public override Administrator Get(int id)
+        public override Administrator Get(long id)
         {
             Administrator admin = null;
             NpgsqlConnection conn = null;
@@ -59,7 +59,7 @@ namespace DAL
                 string procedure = "sp_get_administrator";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_id", id));
+                command.Parameters.Add(new NpgsqlParameter("_id", (int)id));
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 var reader = command.ExecuteReader();

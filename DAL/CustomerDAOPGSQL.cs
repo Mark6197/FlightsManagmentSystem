@@ -39,7 +39,7 @@ namespace DAL
             }
         }
 
-        public override Customer Get(int id)
+        public override Customer Get(long id)
         {
             Customer customer = null;
             NpgsqlConnection conn = null;

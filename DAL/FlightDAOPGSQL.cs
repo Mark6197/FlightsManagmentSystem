@@ -41,7 +41,7 @@ namespace DAL
             }
         }
 
-        public override Flight Get(int id)
+        public override Flight Get(long id)
         {
             Flight flight = null;
             NpgsqlConnection conn = null;

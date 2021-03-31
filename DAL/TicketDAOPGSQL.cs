@@ -37,7 +37,7 @@ namespace DAL
             }
         }
 
-        public override Ticket Get(int id)
+        public override Ticket Get(long id)
         {
             Ticket ticket = null;
             NpgsqlConnection conn = null;

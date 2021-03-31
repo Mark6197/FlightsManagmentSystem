@@ -4,7 +4,7 @@ namespace Domain.Interfaces
 {
     public interface IBasicDB<T> where T : IPoco, new()
     {
-        T Get(int id);//maybe better as long? 
+        T Get(long id);
         IList<T> GetAll();
         long Add(T t);
         void Remove(T t);

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
-namespace BL.LoginService
+namespace BL.Exceptions
 {
     [Serializable]
     class WrongCredentialsException : Exception

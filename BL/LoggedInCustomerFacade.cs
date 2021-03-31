@@ -29,12 +29,10 @@ namespace BL
 
                 _ticketDAO.Remove(ticket);
 
-                lock (key)//Lock this critical section so that there won't be adding and subtract at the same time 
-                {
-                    Flight flight = _flightDAO.Get((int)ticket.Flight.Id);
-                    flight.RemainingTickets++;
-                    _flightDAO.Update(flight);
-                }
+                Flight flight = _flightDAO.Get(ticket.Flight.Id);
+                flight.RemainingTickets++;//maybe add this to the procedure of the cancel
+                _flightDAO.Update(flight);
+
             }
             //catch (NotAllowedCustomerActionException)
             //{
@@ -94,21 +92,15 @@ namespace BL
         {
             _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({token}, {flight})");
             Ticket ticket = null;
-            Flight flight_from_db = _flightDAO.Get((int)flight.Id);
+            Flight flight_from_db = _flightDAO.Get(flight.Id);
 
             if (flight_from_db.RemainingTickets <= 0)//If there are no tickets left throw exception
                 throw new TicketPurchaseFailedException($"User {token.User.User.UserName} failed to purchase ticket to flight {flight.Id}. No tickets left");
 
-            lock (key)//If there are tickets lock this critical section 
-            {
-                flight_from_db = _flightDAO.Get((int)flight.Id);//Get the flight from the db again
+            //maybe add this to the procedure of add ticket
+            flight_from_db.RemainingTickets--;//Remove one ticket from the remaining tickets
+            _flightDAO.Update(flight_from_db);//Update the flight
 
-                if (flight_from_db.RemainingTickets <= 0)//Make sure that there are still tickets left
-                    throw new TicketPurchaseFailedException($"User {token.User.User.UserName} failed to purchase ticket to flight {flight.Id}. No tickets left");
-
-                flight_from_db.RemainingTickets--;//Remove one ticket from the remaining tickets
-                _flightDAO.Update(flight_from_db);//Update the flight
-            }
 
             ticket = new Ticket(flight_from_db, token.User);//Create new ticket
             long ticket_id = _ticketDAO.Add(ticket);//Add the ticket

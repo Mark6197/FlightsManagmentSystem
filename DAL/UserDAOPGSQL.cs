@@ -45,7 +45,7 @@ namespace DAL
             }
         }
 
-        public override User Get(int id)
+        public override User Get(long id)
         {
             User user = null;
             NpgsqlConnection conn = null;

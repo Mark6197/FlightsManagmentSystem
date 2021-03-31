@@ -40,7 +40,7 @@ namespace DAL
             }
         }
 
-        public override Country Get(int id)
+        public override Country Get(long id)
         {
             Country country = null;
             NpgsqlConnection conn = null;
@@ -52,7 +52,7 @@ namespace DAL
                 string procedure = "sp_get_country";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_id", id));
+                command.Parameters.Add(new NpgsqlParameter("_id", (int)id));
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
                 var reader = command.ExecuteReader();

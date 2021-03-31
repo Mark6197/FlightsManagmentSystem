@@ -29,7 +29,7 @@ namespace BL_Tests
             var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("Log4Net.config"));
 
-            FlightsManagmentSystemConfig.Instance.Init();
+            FlightsManagmentSystemConfig.Instance.Init("FlightsManagmentSystemTests.Config.json");
 
             TestsDAOPGSQL.ClearDB();
             Init_Customer_Facade_Data();
