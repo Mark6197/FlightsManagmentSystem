@@ -30,25 +30,25 @@ namespace FlightsManagmentSystemWebAPI.Controllers
             throw new NotImplementedException();
         }
 
-        [HttpPut(nameof(CreateFlight))]
+        [HttpPost(nameof(CreateFlight))]
         public IActionResult CreateFlight(Flight flight)
         {
             throw new NotImplementedException();
         }
 
-        [HttpPost(nameof(UpdateFlight))]
+        [HttpPut(nameof(UpdateFlight))]
         public IActionResult UpdateFlight(Flight flight)
         {
             throw new NotImplementedException();
         }
 
-        [HttpPost(nameof(ChangeMyPassword))]
+        [HttpPut(nameof(ChangeMyPassword))]
         public IActionResult ChangeMyPassword(string oldPassword, string newPassword)
         {
             throw new NotImplementedException();
         }
 
-        [HttpPost(nameof(MofidyAirlineDetails))]
+        [HttpPut(nameof(MofidyAirlineDetails))]
         public IActionResult MofidyAirlineDetails(AirlineCompany airline)
         {
             throw new NotImplementedException();

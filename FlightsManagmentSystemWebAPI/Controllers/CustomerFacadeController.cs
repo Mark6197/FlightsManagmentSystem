@@ -85,7 +85,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
             return Ok(ticket);
         }
 
-        [HttpPut("PurchaseTicket")]
+        [HttpPost("PurchaseTicket")]
         public IActionResult PurchaseTicket(Flight flight)
         {
             LoginToken<Customer> customer_token = getLoginToken();

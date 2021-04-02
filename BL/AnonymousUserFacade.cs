@@ -1,9 +1,14 @@
 ﻿using BL.Interfaces;
 using DAL;
 using Domain.Entities;
+using Domain.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Net.Sockets;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace BL
 {
@@ -11,30 +16,15 @@ namespace BL
     {
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        public void Execute<T>(Func<T> func, object props)
+        public AnonymousUserFacade() : base()
         {
-            //_logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({id})");
-
-            //T result = _airlineDAO.Get(id);
-
-            //_logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
-        }
-
-        public AnonymousUserFacade()
-        {
-            _airlineDAO = new AirlineDAOPGSQL();
-            _countryDAO = new CountryDAOPGSQL();
-            _flightDAO = new FlightDAOPGSQL();
         }
 
         public AirlineCompany GetAirlineCompanyById(long id)
         {
+            AirlineCompany result = null;
 
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({id})");
-
-            var result = _airlineDAO.Get(id);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _airlineDAO.Get(id), new { Id = id }, _logger);
 
             return result;
 
@@ -42,111 +32,91 @@ namespace BL
 
         public IList<AirlineCompany> GetAllAirlineCompanies()
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            IList<AirlineCompany> result = null;
 
-            var result = _airlineDAO.GetAll();
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _airlineDAO.GetAll(), new { }, _logger);
 
             return result;
+
         }
 
         public IList<Country> GetAllCountries()
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            IList<Country> result = null;
 
-            var result = _countryDAO.GetAll();
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _countryDAO.GetAll(), new { }, _logger);
 
             return result;
         }
 
         public IList<Flight> GetAllFlights()
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            IList<Flight> result = null;
 
-            var result = _flightDAO.GetAll();
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.GetAll(), new { }, _logger);
 
             return result;
         }
 
         public Dictionary<Flight, int> GetAllFlightsVacancy()
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            Dictionary<Flight, int> result = null;
 
-            var result = _flightDAO.GetAllFlightsVacancy();
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.GetAllFlightsVacancy(), new { }, _logger);
 
             return result;
         }
 
         public Country GetCountryById(int id)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            Country result = null;
 
-            var result = _countryDAO.Get(id);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _countryDAO.Get(id), new { Id = id }, _logger);
 
             return result;
         }
 
         public Flight GetFlightById(long id)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            Flight result = null;
 
-            var result = _flightDAO.Get(id);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.Get(id), new { Id = id }, _logger);
 
             return result;
         }
 
         public IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate)
         {
+            IList<Flight> result = null;
 
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({departureDate})");
-
-            var result = _flightDAO.GetFlightsByDepatrureDate(departureDate);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.GetFlightsByDepatrureDate(departureDate), new { DepartureDate = departureDate }, _logger);
 
             return result;
         }
 
         public IList<Flight> GetFlightsByDestinationCountry(int countryId)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({countryId})");
+            IList<Flight> result = null;
 
-            var result = _flightDAO.GetFlightsByDestinationCountry(countryId);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.GetFlightsByDestinationCountry(countryId), new { CountryId = countryId }, _logger);
 
             return result;
         }
 
         public IList<Flight> GetFlightsByLandingDate(DateTime landingDate)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({landingDate})");
+            IList<Flight> result = null;
 
-            var result = _flightDAO.GetFlightsByLandingDate(landingDate);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.GetFlightsByLandingDate(landingDate), new { LandingDate = landingDate }, _logger);
 
             return result;
         }
 
         public IList<Flight> GetFlightsByOriginCountry(int countryId)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({countryId})");
+            IList<Flight> result = null;
 
-            var result = _flightDAO.GetFlightsByOriginCountry(countryId);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.GetFlightsByOriginCountry(countryId), new { CountryId = countryId }, _logger);
 
             return result;
         }

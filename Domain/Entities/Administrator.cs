@@ -1,14 +1,26 @@
 ﻿using Domain.Interfaces;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
+    public enum AdminLevel
+    {
+        Junior_Admin=1,
+        Mid_Level_Admin=2,
+        Senior_Admin=3,
+        Main_Admin=4
+    }
+
     public class Administrator : IPoco, IUser
     {
+        [Column("admin_id")]
         public int Id { get; set; }
+        [Column("first_name")]
         public string FirstName { get; set; }
+        [Column("last_name")]
         public string LastName { get; set; }
-        public int Level { get; set; }
+        public AdminLevel Level { get; set; }
         public User User { get; set; }
 
         public Administrator()
@@ -16,7 +28,7 @@ namespace Domain.Entities
 
         }
 
-        public Administrator(string firstName, string lastName, int level, User user, int id = 0)
+        public Administrator(string firstName, string lastName, AdminLevel level, User user, int id = 0)
         {
             FirstName = firstName;
             LastName = lastName;

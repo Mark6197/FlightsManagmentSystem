@@ -1,11 +1,15 @@
 ﻿using ConfigurationService;
 using Domain.Entities;
+using Domain.ExtentionMethods;
 using Domain.Interfaces;
+using log4net;
 using Npgsql;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace DAL
 {
@@ -56,7 +60,7 @@ namespace DAL
 
                 if (prop.PropertyType.GetInterfaces().Contains(typeof(IPoco)))//Check if the property is implementing the IPoco interface
                 {
-                    var instance_prop = GetParametersFromReader(reader, prop.PropertyType,ignore_user);//Recursion
+                    var instance_prop = GetParametersFromReader(reader, prop.PropertyType, ignore_user);//Recursion
                     prop.SetValue(instance, instance_prop);//After recursion ends set the prop value to the value that was read
                     continue;//Continue to the next prop
                 }
@@ -103,7 +107,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    T one_row = (T)GetParametersFromReader(reader, typeof(T),ignore_user);//Get one record from the DB
+                    T one_row = (T)GetParametersFromReader(reader, typeof(T), ignore_user);//Get one record from the DB
 
                     result.Add(one_row);//Add the record to the list
                 }
@@ -129,5 +133,47 @@ namespace DAL
         }
 
         public abstract void Update(T t);
+
+        protected TResult Execute<TResult>(Func<TResult> func, object props_holder, NpgsqlConnection conn, ILog _logger, [CallerMemberName] string callerName = "")
+        {
+            _logger.Debug($"Enter {callerName}({props_holder.GenerateString()})");
+
+            TResult result = default;
+
+            try
+            {
+                result = func.Invoke();
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+
+                if (result == null)
+                    _logger.Debug($"Exit {callerName}. Result: null");
+
+                else if (result.GetType().GetInterfaces().Contains(typeof(IEnumerable)))
+                    _logger.Debug($"Exit {callerName}. Result: {((IEnumerable)result).BuildString()}");
+
+                else
+                    _logger.Debug($"Exit {callerName}. Result: {result}");
+            }
+            return result;
+        }
+
+        protected void Execute(Action action, object props_holder, NpgsqlConnection conn, ILog _logger, [CallerMemberName] string callerName = "")
+        {
+            _logger.Debug($"Enter {callerName}({props_holder.GenerateString()})");
+
+            try
+            {
+                action.Invoke();
+            }
+            finally
+            {
+                DbConnectionPool.Instance.ReturnConnection(conn);
+
+                _logger.Debug($"Exit {callerName}.");
+            }
+        }
     }
 }

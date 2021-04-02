@@ -4,19 +4,21 @@ using Npgsql;
 using NpgsqlTypes;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace DAL
 {
     public class FlightDAOPGSQL : BasicDB<Flight>, IFlightDAO
     {
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public override long Add(Flight flight)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            long result = 0;
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_add_flight";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -34,22 +36,18 @@ namespace DAL
                 long id = (long)command.ExecuteScalar();
 
                 return id;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            }, new { Flight = flight }, conn, _logger);
+
+            return result;
         }
 
         public override Flight Get(long id)
         {
-            Flight flight = null;
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            Flight result = null;
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_flight";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -59,7 +57,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    flight = new Flight
+                    result = new Flight
                     {
                         Id = (long)reader["flight_id"],
                         AirlineCompany = new AirlineCompany
@@ -76,23 +74,19 @@ namespace DAL
                     };
                 }
 
-                return flight;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { Id = id }, conn, _logger);
+
+            return result;
         }
 
         public override IList<Flight> GetAll()
         {
-            List<Flight> flights = new List<Flight>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_all_flights";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -101,7 +95,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    flights.Add(
+                    result.Add(
                         new Flight
                         {
                             Id = (long)reader["flight_id"],
@@ -119,23 +113,19 @@ namespace DAL
                         });
                 }
 
-                return flights;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { }, conn, _logger);
+
+            return result;
         }
 
         public Dictionary<Flight, int> GetAllFlightsVacancy()
         {
-            Dictionary<Flight, int> flights_vacancy_dict = new Dictionary<Flight, int>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            Dictionary<Flight, int> result = new Dictionary<Flight, int>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_all_flights";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -144,7 +134,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    flights_vacancy_dict.Add(
+                    result.Add(
                         new Flight
                         {
                             Id = (long)reader["flight_id"],
@@ -162,23 +152,19 @@ namespace DAL
                         }, (int)reader["remaining_tickets"]);
                 }
 
-                return flights_vacancy_dict;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { }, conn, _logger);
+
+            return result;
         }
 
         public IList<Flight> GetFlightsByAirlineCompany(AirlineCompany airlineCompany)
         {
-            List<Flight> flights = new List<Flight>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_flights_by_airline_company";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -188,7 +174,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    flights.Add(
+                    result.Add(
                         new Flight
                         {
                             Id = (long)reader["flight_id"],
@@ -205,24 +191,19 @@ namespace DAL
                             RemainingTickets = (int)reader["remaining_tickets"]
                         });
                 }
+                return result;
+            }, new { AirlineCompany = airlineCompany }, conn, _logger);
 
-                return flights;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            return result;
         }
 
         public IList<Flight> GetFlightsByCustomer(Customer customer)
         {
-            List<Flight> flights = new List<Flight>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_flights_by_customer";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -232,7 +213,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    flights.Add(
+                    result.Add(
                         new Flight
                         {
                             Id = (long)reader["flight_id"],
@@ -249,24 +230,19 @@ namespace DAL
                             RemainingTickets = (int)reader["remaining_tickets"]
                         });
                 }
+                return result;
+            }, new { Customer = customer }, conn, _logger);
 
-                return flights;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            return result;
         }
 
         public IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate)
         {
-            List<Flight> flights = new List<Flight>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_flights_by_departure_date";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -276,7 +252,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    flights.Add(
+                    result.Add(
                         new Flight
                         {
                             Id = (long)reader["flight_id"],
@@ -293,24 +269,19 @@ namespace DAL
                             RemainingTickets = (int)reader["remaining_tickets"]
                         });
                 }
+                return result;
+            }, new { DepartureDate = departureDate }, conn, _logger);
 
-                return flights;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            return result;
         }
 
         public IList<Flight> GetFlightsByDestinationCountry(int countryId)
         {
-            List<Flight> flights = new List<Flight>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_flights_by_destination_country";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -320,7 +291,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    flights.Add(
+                    result.Add(
                         new Flight
                         {
                             Id = (long)reader["flight_id"],
@@ -338,23 +309,19 @@ namespace DAL
                         });
                 }
 
-                return flights;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { CountryId = countryId }, conn, _logger);
+
+            return result;
         }
 
         public IList<Flight> GetFlightsByLandingDate(DateTime landingDate)
         {
-            List<Flight> flights = new List<Flight>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_flights_by_landing_date";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -364,7 +331,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    flights.Add(
+                    result.Add(
                         new Flight
                         {
                             Id = (long)reader["flight_id"],
@@ -382,23 +349,19 @@ namespace DAL
                         });
                 }
 
-                return flights;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { LandingDate = landingDate }, conn, _logger);
+
+            return result;
         }
 
         public IList<Flight> GetFlightsByOriginCountry(int countryId)
         {
-            List<Flight> flights = new List<Flight>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_flights_by_origin_country";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -408,7 +371,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    flights.Add(
+                    result.Add(
                         new Flight
                         {
                             Id = (long)reader["flight_id"],
@@ -426,23 +389,19 @@ namespace DAL
                         });
                 }
 
-                return flights;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { CountryId = countryId }, conn, _logger);
+
+            return result;
         }
 
         public IDictionary<Flight, List<Ticket>> GetFlightsWithTicketsAfterLanding(long seconds_after_landing)
         {
-            Dictionary<Flight, List<Ticket>> flights_with_tickets = new Dictionary<Flight, List<Ticket>>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            Dictionary<Flight, List<Ticket>> result = new Dictionary<Flight, List<Ticket>>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_flights_with_tickets_that_landed";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -456,9 +415,9 @@ namespace DAL
                     {
                         Id = (long)reader["flight_id"]
                     };
-                    if (!flights_with_tickets.ContainsKey(flight))//Check if the flight already added as key
+                    if (!result.ContainsKey(flight))//Check if the flight already added as key
                     {
-                        flights_with_tickets.Add(//If not add the flight as key
+                        result.Add(//If not add the flight as key
                             new Flight
                             {
                                 Id = flight.Id,
@@ -490,7 +449,7 @@ namespace DAL
                     }
                     else//If the flight is already a key in the dictionary
                     {
-                        flights_with_tickets[flight].Add(//Add new ticket to the list in the value
+                        result[flight].Add(//Add new ticket to the list in the value
                             new Ticket
                             {
                                 Id = (long)reader["ticket_id"],
@@ -506,45 +465,34 @@ namespace DAL
                     }
                 }
 
-                return flights_with_tickets;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { Seconds_After_Landing = seconds_after_landing }, conn, _logger);
+
+            return result;
         }
 
 
         public override void Remove(Flight flight)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
 
-            try
+            Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "call sp_remove_flight(@_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("@_id", flight.Id));
 
                 command.ExecuteNonQuery();
-
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            }, new { Flight = flight }, conn, _logger);
         }
 
         public override void Update(Flight flight)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
 
-            try
+            Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "call sp_update_flight(@_id, @_airline_company_id, @_origin_country_id, @_destination_country_id, @_departure_time, @_landing_time, @_remaining_tickets)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -560,12 +508,7 @@ namespace DAL
                 });
 
                 command.ExecuteNonQuery();
-
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            }, new { Flight = flight }, conn, _logger);
         }
     }
 }

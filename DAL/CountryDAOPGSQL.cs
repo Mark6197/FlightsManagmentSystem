@@ -12,43 +12,32 @@ namespace DAL
 
         public override long Add(Country country)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            long result = 0;
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_add_country";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("_name", country.Name));
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                int id = (int)command.ExecuteScalar();
+                result = (int)command.ExecuteScalar();
 
-                return id;
+                return result;
+            }, new { Country = country }, conn, _logger);
 
-            }
-            //catch (NpgsqlException ex)
-            //{
-            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            //    return 0;
-            //}
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            return result;
         }
 
         public override Country Get(long id)
         {
-            Country country = null;
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            Country result = null;
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_country";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -58,30 +47,26 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    country = new Country
+                    result = new Country
                     {
                         Id = (int)reader["id"],
                         Name = (string)reader["name"]
                     };
                 }
 
-                return country;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { Id = id }, conn, _logger);
+
+            return result;
         }
 
         public override IList<Country> GetAll()
         {
-            List<Country> countries = new List<Country>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Country> result = new List<Country>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_all_countries";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -90,7 +75,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    countries.Add(
+                    result.Add(
                         new Country
                         {
                             Id = (int)reader["id"],
@@ -98,44 +83,33 @@ namespace DAL
                         });
                 }
 
-                return countries;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { }, conn, _logger);
+
+            return result;
         }
 
         public override void Remove(Country country)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
 
-            try
+            Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "call sp_remove_country(@_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("@_id", country.Id));
 
                 command.ExecuteNonQuery();
-
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            }, new { Country = country }, conn, _logger);
         }
 
         public override void Update(Country country)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
 
-            try
+            Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "call sp_update_country(@_id, @_name)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -146,12 +120,7 @@ namespace DAL
                 });
 
                 command.ExecuteNonQuery();
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
-
+            }, new { Country = country }, conn, _logger);
         }
     }
 }

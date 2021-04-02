@@ -13,11 +13,11 @@ namespace BL_Tests
         {
             return new Administrator[]
             {
-                new Administrator("admin_1", "admin_1", 1, new User("admin_level_1", "11111", "admin1@admin.com", UserRoles.Administrator)),
-                new Administrator("admin_2", "admin_2", 2, new User("admin_level_2", "22222", "admin2@admin.com", UserRoles.Administrator)),
-                new Administrator("admin_3", "admin_3", 3, new User("admin_level_3", "33333", "admin3@admin.com", UserRoles.Administrator)),
-                new Administrator("admin_4", "admin_4", 1, new User("admin_level_1", "111", "admin4@admin.com", UserRoles.Administrator)),
-                new Administrator("admin_4", "admin_4", 1, new User("admin_level_4", "111", "admin1@admin.com", UserRoles.Administrator))
+                new Administrator("admin_1", "admin_1", AdminLevel.Junior_Admin, new User("admin_level_1", "11111", "admin1@admin.com", UserRoles.Administrator)),
+                new Administrator("admin_2", "admin_2", AdminLevel.Mid_Level_Admin, new User("admin_level_2", "22222", "admin2@admin.com", UserRoles.Administrator)),
+                new Administrator("admin_3", "admin_3", AdminLevel.Senior_Admin, new User("admin_level_3", "33333", "admin3@admin.com", UserRoles.Administrator)),
+                new Administrator("admin_4", "admin_4", AdminLevel.Junior_Admin, new User("admin_level_1", "111", "admin4@admin.com", UserRoles.Administrator)),
+                new Administrator("admin_4", "admin_4", AdminLevel.Junior_Admin, new User("admin_level_4", "111", "admin1@admin.com", UserRoles.Administrator))
             };
         }
 

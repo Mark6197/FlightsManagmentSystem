@@ -1,5 +1,6 @@
 ﻿using Domain.Interfaces;
 using Newtonsoft.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Entities
 {
@@ -12,10 +13,12 @@ namespace Domain.Entities
 
     public class User : IPoco
     {
+        [Column("user_id")]
         public long Id { get; set; }
         public string UserName { get; set; }
         public string Password { get; set; }
         public string Email { get; set; }
+        [Column("user_role_id")]
         public UserRoles UserRole { get; set; }
 
         public User()

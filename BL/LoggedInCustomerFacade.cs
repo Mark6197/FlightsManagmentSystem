@@ -15,14 +15,11 @@ namespace BL
 
         public LoggedInCustomerFacade() : base()
         {
-            _ticketDAO = new TicketDAOPGSQL();
         }
 
         public void CancelTicket(LoginToken<Customer> token, Ticket ticket)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({ticket})");
-
-            try
+            Execute(() =>
             {
                 if (token.User != ticket.Customer)
                     throw new NotAllowedCustomerActionException($"Customer {token.User.User.UserName} not allowed to cancel ticket {ticket.Id} that belogns to customer with id {ticket.Customer.Id}");
@@ -32,84 +29,74 @@ namespace BL
                 Flight flight = _flightDAO.Get(ticket.Flight.Id);
                 flight.RemainingTickets++;//maybe add this to the procedure of the cancel
                 _flightDAO.Update(flight);
-
-            }
-            //catch (NotAllowedCustomerActionException)
-            //{
-
-            //    throw;
-            //}
-            finally
-            {
-                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
-            }
+            }, new { Token = token, Ticket = ticket }, _logger);
         }
 
         public IList<Flight> GetAllMyFlights(LoginToken<Customer> token)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            IList<Flight> result = null;
 
-            var result = _flightDAO.GetFlightsByCustomer(token.User);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.GetFlightsByCustomer(token.User), new { Token = token }, _logger);
 
             return result;
         }
 
         public IList<Ticket> GetAllMyTickets(LoginToken<Customer> token)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            IList<Ticket> result = null;
 
-            var result = _ticketDAO.Run_Generic_SP("sp_get_all_tickets_by_customer", new { _customer_id = token.User.Id }, true);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => 
+                        _ticketDAO.Run_Generic_SP("sp_get_all_tickets_by_customer", new { _customer_id = token.User.Id }, true),
+            new { Token = token }, _logger);
 
             return result;
         }
 
         public Ticket GetTicketById(LoginToken<Customer> token, long id)
         {
-            Ticket ticket = null;
+            Ticket result = null;
 
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
-
-            var result = _ticketDAO.Run_Generic_SP("sp_get_ticket", new { _id = id }, true);
-
-            if (result.Count > 0)
+            result = Execute(() =>
             {
-                if (token.User != result[0].Customer)
-                    throw new NotAllowedCustomerActionException($"Customer {token.User.User.UserName} not allowed to get details of ticket {result[0].Id} that belogns to customer with id {result[0].Customer.Id}");
+                var ticket = _ticketDAO.Run_Generic_SP("sp_get_ticket", new { _id = id }, true);
 
-                ticket = result[0];
-            }
+                if (ticket.Count > 0)
+                {
+                    if (token.User != ticket[0].Customer)
+                        throw new NotAllowedCustomerActionException($"Customer {token.User.User.UserName} not allowed to get details of ticket {ticket[0].Id} that belogns to customer with id {ticket[0].Customer.Id}");
 
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {ticket}");
+                    return ticket[0];
+                }
+                return null;
+            }, new { Token = token, Id=id }, _logger);
 
-            return ticket;
+            return result;
         }
 
         public Ticket PurchaseTicket(LoginToken<Customer> token, Flight flight)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({token}, {flight})");
-            Ticket ticket = null;
-            Flight flight_from_db = _flightDAO.Get(flight.Id);
+            Ticket result = null;
 
-            if (flight_from_db.RemainingTickets <= 0)//If there are no tickets left throw exception
-                throw new TicketPurchaseFailedException($"User {token.User.User.UserName} failed to purchase ticket to flight {flight.Id}. No tickets left");
+            result = Execute(() =>
+            {
+                Flight flight_from_db = _flightDAO.Get(flight.Id);
 
-            //maybe add this to the procedure of add ticket
-            flight_from_db.RemainingTickets--;//Remove one ticket from the remaining tickets
-            _flightDAO.Update(flight_from_db);//Update the flight
+                if (flight_from_db.RemainingTickets <= 0)//If there are no tickets left throw exception
+                    throw new TicketPurchaseFailedException($"User {token.User.User.UserName} failed to purchase ticket to flight {flight.Id}. No tickets left");
 
-
-            ticket = new Ticket(flight_from_db, token.User);//Create new ticket
-            long ticket_id = _ticketDAO.Add(ticket);//Add the ticket
-            ticket.Id = ticket_id;
+                //maybe add this to the procedure of add ticket
+                flight_from_db.RemainingTickets--;//Remove one ticket from the remaining tickets
+                _flightDAO.Update(flight_from_db);//Update the flight
 
 
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {ticket}");
+                Ticket ticket = new Ticket(flight_from_db, token.User);//Create new ticket
+                long ticket_id = _ticketDAO.Add(ticket);//Add the ticket
+                ticket.Id = ticket_id;
+                
+                return ticket;
+            }, new { Token = token, Flight = flight }, _logger);
 
-            return ticket;
+            return result;
         }
     }
 }

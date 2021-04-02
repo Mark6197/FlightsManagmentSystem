@@ -12,12 +12,11 @@ namespace DAL
 
         public override long Add(User user)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            long result = 0;
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_add_user";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -30,30 +29,21 @@ namespace DAL
                 });
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                long id = (long)command.ExecuteScalar();
+                result = (long)command.ExecuteScalar();
 
-                return id;
-            }
-            //catch (NpgsqlException ex)
-            //{
-            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            //    return 0;
-            //}
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { User = user }, conn, _logger);
+
+            return result;
         }
 
         public override User Get(long id)
         {
-            User user = null;
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            User result = null;
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_user";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -63,7 +53,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    user = new User
+                    result = new User
                     {
                         Id = (long)reader["id"],
                         UserName = (string)reader["username"],
@@ -73,23 +63,19 @@ namespace DAL
                     };
                 }
 
-                return user;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { Id = id }, conn, _logger);
+
+            return result;
         }
 
         public override IList<User> GetAll()
         {
-            List<User> users = new List<User>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<User> result = new List<User>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_all_users";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -98,7 +84,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    users.Add(
+                    result.Add(
                         new User
                         {
                             Id = (long)reader["id"],
@@ -109,44 +95,33 @@ namespace DAL
                         });
                 }
 
-                return users;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { }, conn, _logger);
+
+            return result;
         }
 
         public override void Remove(User user)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
 
-            try
+            Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "call sp_remove_user(@_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("@_id", user.Id));
 
                 command.ExecuteNonQuery();
-
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            }, new { User = user }, conn, _logger);
         }
 
         public override void Update(User user)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
 
-            try
+            Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "call sp_update_user(@_id, @_username, @_password, @_email, @_user_role_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -160,11 +135,7 @@ namespace DAL
                 });
 
                 command.ExecuteNonQuery();
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            }, new { User = user }, conn, _logger);
         }
     }
 }

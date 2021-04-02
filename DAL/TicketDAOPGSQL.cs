@@ -3,19 +3,21 @@ using Domain.Interfaces;
 using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace DAL
 {
     public class TicketDAOPGSQL : BasicDB<Ticket>, ITicketDAO
     {
+        private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         public override long Add(Ticket ticket)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            long result = 0;
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_add_ticket";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -26,26 +28,21 @@ namespace DAL
                 });
                 command.CommandType = System.Data.CommandType.StoredProcedure;
 
-                long id = (long)command.ExecuteScalar();
+                result = (long)command.ExecuteScalar();
 
-                return id;
+                return result;
+            }, new { Ticket = ticket }, conn, _logger);
 
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            return result;
         }
 
         public override Ticket Get(long id)
         {
-            Ticket ticket = null;
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            Ticket result = null;
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_ticket";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -55,7 +52,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 if (reader.Read())
                 {
-                    ticket = new Ticket
+                    result = new Ticket
                     {
                         Id = (long)reader["ticket_id"],
                         Flight = new Flight
@@ -85,23 +82,19 @@ namespace DAL
                     };
                 }
 
-                return ticket;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { Id = id }, conn, _logger);
+
+            return result;
         }
 
         public override IList<Ticket> GetAll()
         {
-            List<Ticket> tickets = new List<Ticket>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Ticket> result = new List<Ticket>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_all_tickets";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -110,7 +103,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    tickets.Add(
+                    result.Add(
                         new Ticket
                         {
                             Id = (long)reader["ticket_id"],
@@ -141,23 +134,19 @@ namespace DAL
                         });
                 }
 
-                return tickets;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { }, conn, _logger);
+
+            return result;
         }
 
         public IList<Ticket> GetTicketsByAirlineCompany(AirlineCompany airlineCompany)
         {
-            List<Ticket> tickets = new List<Ticket>();
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Ticket> result = new List<Ticket>();
 
-            try
+            result = Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "sp_get_tickets_by_airline_company";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -167,7 +156,7 @@ namespace DAL
                 var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    tickets.Add(
+                    result.Add(
                         new Ticket
                         {
                             Id = (long)reader["ticket_id"],
@@ -198,44 +187,33 @@ namespace DAL
                         });
                 }
 
-                return tickets;
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+                return result;
+            }, new { }, conn, _logger);
+
+            return result;
         }
 
         public override void Remove(Ticket ticket)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
 
-            try
+            Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "call sp_remove_ticket(@_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.Add(new NpgsqlParameter("@_id", ticket.Id));
 
                 command.ExecuteNonQuery();
-
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            }, new { Ticket = ticket }, conn, _logger);
         }
 
         public override void Update(Ticket ticket)
         {
-            NpgsqlConnection conn = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
 
-            try
+            Execute(() =>
             {
-                conn = DbConnectionPool.Instance.GetConnection();
-
                 string procedure = "call sp_update_ticket(@_id, @_flight_id, @_customer_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
@@ -247,12 +225,7 @@ namespace DAL
                 });
 
                 command.ExecuteNonQuery();
-
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
-            }
+            }, new { Ticket = ticket }, conn, _logger);
         }
     }
 }

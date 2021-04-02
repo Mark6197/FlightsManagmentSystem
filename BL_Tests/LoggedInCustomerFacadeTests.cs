@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace BL_Tests
@@ -18,10 +19,18 @@ namespace BL_Tests
     [TestClass]
     public class LoggedInCustomerFacadeTests
     {
-        private static readonly ILog my_logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly FlightCenterSystem system = FlightCenterSystem.GetInstance();
         private LoggedInCustomerFacade customer_facade;
         private LoginToken<Customer> customer_token;
+        private void Execute_Test(Action action, [CallerMemberName] string callerName = "")
+        {
+            _logger.Debug($"Run {callerName} Test");
+
+            action.Invoke();
+
+            _logger.Debug($"Exit {callerName} Test");
+        }
 
         [TestInitialize]
         public void Initialize()
@@ -37,6 +46,8 @@ namespace BL_Tests
 
         private void Init_Customer_Facade_Data()
         {
+            _logger.Debug($"Start Init Customer Tests Data");
+
             string username = "admin";
             string password = "9999";
             system.TryLogin(username, password, out ILoginToken admin_token, out FacadeBase admin_facade);
@@ -73,6 +84,8 @@ namespace BL_Tests
             cust_facade.PurchaseTicket(cust_token, flight);
 
             Login(TestData.Get_Customers_Data()[0].User.UserName, TestData.Get_Customers_Data()[0].User.Password);
+
+            _logger.Debug($"End Init Customer Tests Data");
         }
 
 
@@ -86,85 +99,106 @@ namespace BL_Tests
         [TestMethod]
         public void Purchase_And_Get_Ticket()
         {
-            Flight flight = customer_facade.GetFlightById(1);
-            int empty_seates_before_purchase = flight.RemainingTickets;
-            Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
-            Assert.AreEqual(ticket.Id, 2);
-            Ticket my_ticket = customer_facade.GetTicketById(customer_token, ticket.Id);
+            Execute_Test(() =>
+            {
+                Flight flight = customer_facade.GetFlightById(1);
+                int empty_seates_before_purchase = flight.RemainingTickets;
+                Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
+                Assert.AreEqual(ticket.Id, 2);
+                Ticket my_ticket = customer_facade.GetTicketById(customer_token, ticket.Id);
 
-            TestData.CompareProps(ticket, my_ticket, true);
+                TestData.CompareProps(ticket, my_ticket, true);
 
-            flight = customer_facade.GetFlightById(1);
-            int empty_seates_after_purchase = flight.RemainingTickets;
-            Assert.AreEqual(empty_seates_before_purchase - 1, empty_seates_after_purchase);
+                flight = customer_facade.GetFlightById(1);
+                int empty_seates_after_purchase = flight.RemainingTickets;
+                Assert.AreEqual(empty_seates_before_purchase - 1, empty_seates_after_purchase);
+            });
         }
 
         [TestMethod]
         public void Purchase_And_Get_Two_Tickets_And_Two_Flights()
         {
-            Flight flight = customer_facade.GetFlightById(1);
-            Flight flight2 = customer_facade.GetFlightById(2);
-            Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
-            Ticket ticket2 = customer_facade.PurchaseTicket(customer_token, flight2);
-            Assert.AreEqual(ticket.Id, 2);
-            Assert.AreEqual(ticket2.Id, 3);
-            IList<Ticket> my_tickets = customer_facade.GetAllMyTickets(customer_token);
-            Assert.AreEqual(my_tickets.Count, 2);
+            Execute_Test(() =>
+            {
+                Flight flight = customer_facade.GetFlightById(1);
+                Flight flight2 = customer_facade.GetFlightById(2);
+                Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
+                Ticket ticket2 = customer_facade.PurchaseTicket(customer_token, flight2);
+                Assert.AreEqual(ticket.Id, 2);
+                Assert.AreEqual(ticket2.Id, 3);
+                IList<Ticket> my_tickets = customer_facade.GetAllMyTickets(customer_token);
+                Assert.AreEqual(my_tickets.Count, 2);
 
-            TestData.CompareProps(my_tickets[0], ticket, true);
-            TestData.CompareProps(my_tickets[1], ticket2, true);
+                TestData.CompareProps(my_tickets[0], ticket, true);
+                TestData.CompareProps(my_tickets[1], ticket2, true);
 
-            IList<Flight> my_flights = customer_facade.GetAllMyFlights(customer_token);
-            Assert.AreEqual(my_flights[0], flight);
-            Assert.AreEqual(my_flights[1], flight2);
+                IList<Flight> my_flights = customer_facade.GetAllMyFlights(customer_token);
+                Assert.AreEqual(my_flights[0], flight);
+                Assert.AreEqual(my_flights[1], flight2);
+            });
         }
 
         [TestMethod]
         public void Purchase_Two_Tickets_For_The_Same_Flight()
         {
-            Flight flight = customer_facade.GetFlightById(1);
-            Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
-            Assert.AreEqual(ticket.Id, 2);
-            Assert.ThrowsException<PostgresException>(() => customer_facade.PurchaseTicket(customer_token, flight));
+            Execute_Test(() =>
+            {
+                Flight flight = customer_facade.GetFlightById(1);
+                Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
+                Assert.AreEqual(ticket.Id, 2);
+                Assert.ThrowsException<PostgresException>(() => customer_facade.PurchaseTicket(customer_token, flight));
+            });
         }
 
         [TestMethod]
         public void Purchase_Tickets_For_Empty_Flight()
         {
-            Flight flight = customer_facade.GetFlightById(3);
-            Assert.ThrowsException<TicketPurchaseFailedException>(() => customer_facade.PurchaseTicket(customer_token, flight));
+            Execute_Test(() =>
+            {
+                Flight flight = customer_facade.GetFlightById(3);
+                Assert.ThrowsException<TicketPurchaseFailedException>(() => customer_facade.PurchaseTicket(customer_token, flight));
+            });
         }
 
 
         [TestMethod]
         public void Cancel_Ticket()
         {
-            Flight flight = customer_facade.GetFlightById(1);
-            Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
-            Assert.AreEqual(ticket.Id, 2);
+            Execute_Test(() =>
+            {
+                Flight flight = customer_facade.GetFlightById(1);
+                Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
+                Assert.AreEqual(ticket.Id, 2);
 
-            flight = customer_facade.GetFlightById(1);
-            int empty_seates_before_cancellation = flight.RemainingTickets;
+                flight = customer_facade.GetFlightById(1);
+                int empty_seates_before_cancellation = flight.RemainingTickets;
 
-            customer_facade.CancelTicket(customer_token, ticket);
-            Ticket ticket_from_db = customer_facade.GetTicketById(customer_token, ticket.Id);
-            Assert.AreEqual(ticket_from_db, null);
+                customer_facade.CancelTicket(customer_token, ticket);
+                Ticket ticket_from_db = customer_facade.GetTicketById(customer_token, ticket.Id);
+                Assert.AreEqual(ticket_from_db, null);
 
-            flight = customer_facade.GetFlightById(1);
-            int empty_seates_after_cancellation = flight.RemainingTickets;
-            Assert.AreEqual(empty_seates_before_cancellation + 1, empty_seates_after_cancellation);
+                flight = customer_facade.GetFlightById(1);
+                int empty_seates_after_cancellation = flight.RemainingTickets;
+                Assert.AreEqual(empty_seates_before_cancellation + 1, empty_seates_after_cancellation);
+            });
         }
 
         [TestMethod]
         public void Get_Ticket_Of_Another_Customer()
         {
-            Assert.ThrowsException<NotAllowedCustomerActionException>(() => customer_facade.GetTicketById(customer_token, 1));
+            Execute_Test(() =>
+            {
+                Assert.ThrowsException<NotAllowedCustomerActionException>(() => customer_facade.GetTicketById(customer_token, 1));
+            });
         }
 
         [TestMethod]
         public void Cancel_Ticket_Of_Another_Customer()
         {
-            Assert.ThrowsException<NotAllowedCustomerActionException>(() => customer_facade.CancelTicket(customer_token, new Ticket(new Flight(), new Customer { Id = 2 }, 1)));
+            Execute_Test(() =>
+            {
+                Assert.ThrowsException<NotAllowedCustomerActionException>(() => customer_facade.CancelTicket(customer_token, new Ticket(new Flight(), new Customer { Id = 2 }, 1)));
+            });
         }
     }
 }

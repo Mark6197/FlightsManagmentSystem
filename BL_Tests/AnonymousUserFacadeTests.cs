@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace BL_Tests
 {
@@ -16,7 +17,7 @@ namespace BL_Tests
     public class AnonymousUserFacadeTests
     {
 
-        private static readonly ILog my_logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly FlightCenterSystem system = FlightCenterSystem.GetInstance();
         private AnonymousUserFacade anonymous_facade;
 
@@ -39,8 +40,19 @@ namespace BL_Tests
             anonymous_facade = system.GetFacade<AnonymousUserFacade>();
         }
 
+        private void Execute_Test(Action action, [CallerMemberName] string callerName = "")
+        {
+            _logger.Debug($"Run {callerName} Test");
+
+            action.Invoke();
+
+            _logger.Debug($"Exit {callerName} Test");
+        }
+
         private void Init_Anonymous_Data()
         {
+            _logger.Debug($"Start Init Anonymous Tests Data");
+
             TestsDAOPGSQL.ClearDB();
             string username = "admin";
             string password = "9999";
@@ -81,57 +93,74 @@ namespace BL_Tests
             flight4.Id = flight_id4;
             flight5.Id = flight_id5;
             flight6.Id = flight_id6;
+
+            _logger.Debug($"End Init Anonymous Tests Data");
         }
 
         [TestMethod]
         public void Get_All_Flights_By_Origin_Country()
         {
-            Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(1).Count, 3);
-            Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(2).Count, 2);
-            Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(3).Count, 1);
+            Execute_Test(() =>
+            {
+                Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(1).Count, 3);
+                Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(2).Count, 2);
+                Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(3).Count, 1);
+            });
         }
 
 
         [TestMethod]
         public void Get_All_Flights_By_Destination_Country()
         {
-            Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(1).Count, 0);
-            Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(2).Count, 4);
-            Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(3).Count, 2);
+            Execute_Test(() =>
+            {
+                Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(1).Count, 0);
+                Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(2).Count, 4);
+                Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(3).Count, 2);
+            });
         }
 
         [TestMethod]
         public void Get_All_Flighst_By_Departure_Date()
         {
-            Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now).Count, 0);
-            Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(1)).Count, 3);
-            Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(2)).Count, 1);
-            Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(3)).Count, 1);
-            Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(4)).Count, 1);
+            Execute_Test(() =>
+            {
+                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now).Count, 0);
+                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(1)).Count, 3);
+                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(2)).Count, 1);
+                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(3)).Count, 1);
+                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(4)).Count, 1);
+            });
         }
 
         [TestMethod]
         public void Get_All_Flights_By_Landing_Date()
         {
-            Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(2)).Count, 2);
-            Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(3)).Count, 2);
-            Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(4)).Count, 0);
-            Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(5)).Count, 2);
+            Execute_Test(() =>
+            {
+                Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(2)).Count, 2);
+                Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(3)).Count, 2);
+                Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(4)).Count, 0);
+                Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(5)).Count, 2);
+            });
         }
 
         [TestMethod]
         public void Get_All_Flights_Vacancy()
         {
-            Dictionary<Flight, int> flight_vacancy = anonymous_facade.GetAllFlightsVacancy();
-            Assert.AreEqual(flight_vacancy.Count, 6);
-
-            for (int i = 0; i < flight_vacancy.Count; i++)
+            Execute_Test(() =>
             {
-                Flight flight = TestData.Get_Flights_Data_For_Anonymous_Tests()[i];
-                flight.Id = i + 1;
+                Dictionary<Flight, int> flight_vacancy = anonymous_facade.GetAllFlightsVacancy();
+                Assert.AreEqual(flight_vacancy.Count, 6);
 
-                Assert.AreEqual(flight.RemainingTickets, flight_vacancy[flight]);
-            }
+                for (int i = 0; i < flight_vacancy.Count; i++)
+                {
+                    Flight flight = TestData.Get_Flights_Data_For_Anonymous_Tests()[i];
+                    flight.Id = i + 1;
+
+                    Assert.AreEqual(flight.RemainingTickets, flight_vacancy[flight]);
+                }
+            });
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Domain.Interfaces;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,6 +13,11 @@ namespace BL.LoginService
         public LoginToken(T user)
         {
             User = user;
+        }
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(this);
         }
     }
 }

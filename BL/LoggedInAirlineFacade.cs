@@ -14,34 +14,22 @@ namespace BL
 
         public LoggedInAirlineFacade() : base()
         {
-            _userDAO = new UserDAOPGSQL();
-            _airlineDAO = new AirlineDAOPGSQL();
-            _ticketDAO = new TicketDAOPGSQL();
         }
 
         public void CancelFlight(LoginToken<AirlineCompany> token, Flight flight)//maybe it's not the best sulotion to delete. what to do with the tickets?????
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({flight})");
-
-            try
+            Execute(() =>
             {
                 if (token.User != flight.AirlineCompany)
                     throw new NotAllowedAirlineActionException($"Airline company {token.User.Name} not allowed to cancel flight {flight.Id} that belongs to {flight.AirlineCompany.Name}");
 
                 _flightDAO.Remove(flight);
-            }
-
-            finally
-            {
-                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
-            }
+            }, new { Token = token, Flight = flight }, _logger);
         }
 
         public void ChangeMyPassword(LoginToken<AirlineCompany> token, string oldPassword, string newPassword)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({oldPassword},{newPassword})");
-
-            try
+            Execute(() =>
             {
                 if (token.User.User.Password != oldPassword)
                     throw new WrongPasswordException($"User {token.User.User.UserName} tried to update password with wrong old password");
@@ -53,101 +41,63 @@ namespace BL
                 user.Password = newPassword;
 
                 _userDAO.Update(user);
-            }
-            //catch (WrongPasswordException ex)
-            //{
-            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            //}
-            finally
-            {
-                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
-            }
+            }, new { Token = token, OldPassword = oldPassword, NewPassword = newPassword }, _logger);
         }
 
         public long CreateFlight(LoginToken<AirlineCompany> token, Flight flight)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({flight})");
-            long flight_id = 0;
-            try
+            long result = 0;
+
+            result = Execute(() =>
             {
                 if (token.User != flight.AirlineCompany)
                     throw new NotAllowedAirlineActionException($"Airline company {token.User.Name} not allowed to add flight {flight.Id} that belongs to {flight.AirlineCompany.Name}");
 
-                flight_id = _flightDAO.Add(flight);
-                return flight_id;
-            }
-            //catch (NotAllowedAirlineActionException ex)
-            //{
-            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            //}
-            finally
-            {
-                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {flight_id}");
-            }
+                result = _flightDAO.Add(flight);
+                return result;
+            }, new { Token = token, Flight = flight }, _logger);
+
+            return result;
         }
 
         public IList<Flight> GetAllFlights(LoginToken<AirlineCompany> token)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            IList<Flight> result = null;
 
-            var result = _flightDAO.GetFlightsByAirlineCompany(token.User);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _flightDAO.GetFlightsByAirlineCompany(token.User), new { Token = token }, _logger);
 
             return result;
         }
 
         public IList<Ticket> GetAllTickets(LoginToken<AirlineCompany> token)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}()");
+            IList<Ticket> result = null;
 
-            var result = _ticketDAO.GetTicketsByAirlineCompany(token.User);
-
-            _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}. Result: {result}");
+            result = Execute(() => _ticketDAO.GetTicketsByAirlineCompany(token.User), new { Token = token }, _logger);
 
             return result;
         }
 
         public void MofidyAirlineDetails(LoginToken<AirlineCompany> token, AirlineCompany airlineCompany)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({airlineCompany})");
-
-            try
+            Execute(() =>
             {
                 if (token.User != airlineCompany)
                     throw new NotAllowedAirlineActionException($"{token.User.Name} company not allowed to modify the details of {airlineCompany.Name} company");
 
                 _airlineDAO.Update(airlineCompany);
-            }
-            //catch (NotAllowedAirlineActionException ex)
-            //{
-            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            //}
-            finally
-            {
-                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
-            }
+            }, new { Token = token, AirlineCompany = airlineCompany }, _logger);
         }
 
         public void UpdateFlight(LoginToken<AirlineCompany> token, Flight flight)
         {
-            _logger.Debug($"Entering {MethodBase.GetCurrentMethod().Name}({flight})");
-
-            try
+            Execute(() =>
             {
                 if (token.User != flight.AirlineCompany)
                     throw new NotAllowedAirlineActionException($"Airline company {token.User.Name} not allowed to update flight {flight.Id} that belongs to {flight.AirlineCompany.Name}");
 
                 _flightDAO.Update(flight);
-            }
-            //catch (NotAllowedAirlineActionException ex)
-            //{
-            //    _logger.Error($"Message: {ex.Message}\nStack Trace:{ex.StackTrace}");
-            //}
-            finally
-            {
-                _logger.Debug($"Leaving {MethodBase.GetCurrentMethod().Name}");
-            }
+            }, new { Token = token, Flight = flight }, _logger);
         }
     }
 }

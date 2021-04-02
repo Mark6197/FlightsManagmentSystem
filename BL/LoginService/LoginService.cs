@@ -16,55 +16,62 @@ namespace BL.LoginService
         private IAirlineDAO _airlineDAO;
         private ICustomerDAO _customerDAO;
         private IAdminDAO _adminDAO;
+        private IUserDAO _userDAO;
 
         public LoginService()
         {
             _adminDAO = new AdminDAOPGSQL();
             _customerDAO = new CustomerDAOPGSQL();
             _airlineDAO = new AirlineDAOPGSQL();
+            _userDAO = new UserDAOPGSQL();
         }
 
         public bool TryLogin(string userName, string password, out ILoginToken token, out FacadeBase facade)
         {
             _logger.Info($"{userName} trying to login");
+            if (userName == "admin" && password == "9999")
+            {
+                token = new LoginToken<Administrator>(new Administrator("Admin", "Admin", AdminLevel.Main_Admin, new User(userName, password, "admin@admin.com", UserRoles.Administrator)));
+                facade = new LoggedInAdministratorFacade();
+                _logger.Info($"{userName} succeeded to login as main administrator");
+                return true;
+            }
+
             try
             {
-                if (userName == "admin" && password == "9999")
+                List<User> users = _userDAO.Run_Generic_SP("sp_get_user_by_username_and_password", new { _username = userName, _password = password });
+
+                if (users.Count == 0)
+                    throw new WrongCredentialsException();
+
+                User user = users[0];
+
+                switch (user.UserRole)
                 {
-                    token = new LoginToken<Administrator>(new Administrator("Admin", "Admin", 4, new User(userName, password, "admin@admin.com", UserRoles.Administrator)));
-                    facade = new LoggedInAdministratorFacade();
-                    _logger.Info($"{userName} succeeded to login as main administrator");
-                    return true;
+                    case UserRoles.Administrator:
+                        Administrator administrator = _adminDAO.Run_Generic_SP("sp_get_administrator_by_user_id", new { _user_id = user.Id })[0];
+                        token = new LoginToken<Administrator>(administrator);
+                        facade = new LoggedInAdministratorFacade();
+                        break;
+                    case UserRoles.Airline_Company:
+                        AirlineCompany airlineCompany = _airlineDAO.Run_Generic_SP("sp_get_airline_company_by_user_id", new { _user_id = user.Id })[0];
+                        token = new LoginToken<AirlineCompany>(airlineCompany);
+                        facade = new LoggedInAirlineFacade();
+                        break;
+                    case UserRoles.Customer:
+                        Customer customer = _customerDAO.Run_Generic_SP("sp_get_customer_by_user_id", new { _user_id = user.Id })[0];
+                        token = new LoginToken<Customer>(customer);
+                        facade = new LoggedInCustomerFacade();
+                        break;
+                    default://Will not happen
+                        token = null;
+                        facade = new AnonymousUserFacade();
+                        break;
                 }
 
-                Administrator admin = _adminDAO.GetAdministratorByUsernameAndPassword(userName, password);
-                if (admin != null)
-                {
-                    token = new LoginToken<Administrator>(admin);
-                    facade = new LoggedInAdministratorFacade();
-                    _logger.Info($"{userName} succeeded to login as administrator");
-                    return true;
-                }
+                _logger.Info($"{userName} succeeded to login as {user.UserRole}");
 
-                Customer customer = _customerDAO.GetCustomerByUsernameAndPassword(userName, password);
-                if (customer != null)
-                {
-                    token = new LoginToken<Customer>(customer);
-                    facade = new LoggedInCustomerFacade();
-                    _logger.Info($"{userName} succeeded to login as customer");
-                    return true;
-                }
-
-                AirlineCompany airlineCompany = _airlineDAO.GetAirlineByUsernameAndPassword(userName, password);
-                if (airlineCompany != null)
-                {
-                    token = new LoginToken<AirlineCompany>(airlineCompany);
-                    facade = new LoggedInAirlineFacade();
-                    _logger.Info($"{userName} succeeded to login as airline company");
-                    return true;
-                }
-
-                throw new WrongCredentialsException();
+                return true;
             }
             catch (WrongCredentialsException)
             {
@@ -77,19 +84,21 @@ namespace BL.LoginService
 
         public bool IsValidUserNameAndPassword(string username, string password)
         {
-            Administrator admin = _adminDAO.GetAdministratorByUsernameAndPassword(username, password);
-            if (admin != null)
-                return true;
+            //Administrator admin = _adminDAO.GetAdministratorByUsernameAndPassword(username, password);
+            //if (admin != null)
+            //    return true;
 
-            Customer customer = _customerDAO.GetCustomerByUsernameAndPassword(username, password);
-            if (customer != null)
-                return true;
+            //Customer customer = _customerDAO.GetCustomerByUsernameAndPassword(username, password);
+            //if (customer != null)
+            //    return true;
 
-            AirlineCompany airlineCompany = _airlineDAO.GetAirlineByUsernameAndPassword(username, password);
-            if (airlineCompany != null)
-                return true;
+            //AirlineCompany airlineCompany = _airlineDAO.GetAirlineByUsernameAndPassword(username, password);
+            //if (airlineCompany != null)
+            //    return true;
 
-            return false;
+            //return false;
+
+            throw new NotImplementedException();
         }
     }
 }
