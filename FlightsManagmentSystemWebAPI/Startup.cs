@@ -30,6 +30,7 @@ namespace FlightsManagmentSystemWebAPI
         {
             //services.AddSingleton<IFlightCenterSystem, FlightCenterSystem>();
             FlightsManagmentSystemConfig.Instance.Init();
+            FlightCenterSystem.GetInstance();
             
             services.AddControllers();
             services.AddSwaggerGen(c =>

@@ -79,7 +79,7 @@ namespace BL_Tests
             };
         }
 
-        internal static void CompareProps(object object_a, object object_b,bool ignore_user=false)
+        internal static void CompareProps(object object_a, object object_b, bool ignore_user = false)
         {
 
             Type type_a = object_a.GetType();
@@ -96,9 +96,12 @@ namespace BL_Tests
 
                 if (prop_type.GetInterfaces().Contains(typeof(IPoco)))
                 {
+                    if (props_a[i].GetValue(object_a) == null && props_a[i].GetValue(object_b) == null)
+                        continue;
+
                     CompareProps(props_a[i].GetValue(object_a), props_a[i].GetValue(object_b), ignore_user);
                 }
-                else if(prop_type==typeof(DateTime))
+                else if (prop_type == typeof(DateTime))
                 {
                     CompareDates((DateTime)props_a[i].GetValue(object_a), (DateTime)props_b[i].GetValue(object_b));
                 }
@@ -109,13 +112,13 @@ namespace BL_Tests
             }
         }
 
-        private static void CompareDates(DateTime object_a, DateTime object_b)
+        internal static void CompareDates(DateTime object_a, DateTime object_b)
         {
-            Assert.AreEqual(object_a.Year,object_b.Year);
-            Assert.AreEqual(object_a.Month,object_b.Month);
-            Assert.AreEqual(object_a.Day,object_b.Day);
-            Assert.AreEqual(object_a.Hour,object_b.Hour);
-            Assert.AreEqual(object_a.Minute,object_b.Minute);
+            Assert.AreEqual(object_a.Year, object_b.Year);
+            Assert.AreEqual(object_a.Month, object_b.Month);
+            Assert.AreEqual(object_a.Day, object_b.Day);
+            Assert.AreEqual(object_a.Hour, object_b.Hour);
+            Assert.AreEqual(object_a.Minute, object_b.Minute);
         }
     }
 }

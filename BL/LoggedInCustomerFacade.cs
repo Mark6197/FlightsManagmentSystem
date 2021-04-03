@@ -22,13 +22,15 @@ namespace BL
             Execute(() =>
             {
                 if (token.User != ticket.Customer)
-                    throw new NotAllowedCustomerActionException($"Customer {token.User.User.UserName} not allowed to cancel ticket {ticket.Id} that belogns to customer with id {ticket.Customer.Id}");
+                    throw new WrongCustomerException($"Customer {token.User.User.UserName} not allowed to cancel ticket {ticket.Id} that belogns to customer with id {ticket.Customer.Id}");
 
                 _ticketDAO.Remove(ticket);
 
                 Flight flight = _flightDAO.Get(ticket.Flight.Id);
                 flight.RemainingTickets++;//maybe add this to the procedure of the cancel
                 _flightDAO.Update(flight);
+
+                _flightsTicketsHistoryDAO.Add(ticket, TicketStatus.Cancelled_By_Customer);
             }, new { Token = token, Ticket = ticket }, _logger);
         }
 
@@ -45,9 +47,7 @@ namespace BL
         {
             IList<Ticket> result = null;
 
-            result = Execute(() => 
-                        _ticketDAO.Run_Generic_SP("sp_get_all_tickets_by_customer", new { _customer_id = token.User.Id }, true),
-            new { Token = token }, _logger);
+            result = Execute(() => _ticketDAO.GetTicketsByCustomer(token.User), new { Token = token }, _logger);
 
             return result;
         }
@@ -63,12 +63,31 @@ namespace BL
                 if (ticket.Count > 0)
                 {
                     if (token.User != ticket[0].Customer)
-                        throw new NotAllowedCustomerActionException($"Customer {token.User.User.UserName} not allowed to get details of ticket {ticket[0].Id} that belogns to customer with id {ticket[0].Customer.Id}");
+                        throw new WrongCustomerException($"Customer {token.User.User.UserName} not allowed to get details of ticket {ticket[0].Id} that belogns to customer with id {ticket[0].Customer.Id}");
 
                     return ticket[0];
                 }
                 return null;
-            }, new { Token = token, Id=id }, _logger);
+            }, new { Token = token, Id = id }, _logger);
+
+            return result;
+        }
+
+        public TicketHistory GetTicketHistoryByOriginalId(LoginToken<Customer> token, long original_id)
+        {
+            TicketHistory result = null;
+
+            result = Execute(() =>
+            {
+                result = _flightsTicketsHistoryDAO.GetTicketHistory(original_id);
+
+
+                if (result != null && token.User.Id != result.CustomerId)
+                    throw new WrongCustomerException($"Customer {token.User.User.UserName} not allowed to get details of ticket history {result.Id} that belogns to customer with id {result.CustomerId}");
+
+                return result;
+
+            }, new { Token = token, OriginalId = original_id }, _logger);
 
             return result;
         }
@@ -92,7 +111,7 @@ namespace BL
                 Ticket ticket = new Ticket(flight_from_db, token.User);//Create new ticket
                 long ticket_id = _ticketDAO.Add(ticket);//Add the ticket
                 ticket.Id = ticket_id;
-                
+
                 return ticket;
             }, new { Token = token, Flight = flight }, _logger);
 

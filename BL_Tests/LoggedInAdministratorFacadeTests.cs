@@ -2,6 +2,7 @@
 using BL.Exceptions;
 using BL.LoginService;
 using ConfigurationService;
+using DAL.Exceptions;
 using Domain.Entities;
 using log4net;
 using log4net.Config;
@@ -193,7 +194,7 @@ namespace BL_Tests
                 int admin_id = administrator_facade.CreateNewAdmin(administrator_token, demi_administrator);
                 Assert.AreEqual(admin_id, 1);
 
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.CreateNewAdmin(administrator_token, demi_administrator_with_same_username));
+                Assert.ThrowsException<RecordAlreadyExistsException>(() => administrator_facade.CreateNewAdmin(administrator_token, demi_administrator_with_same_username));
             });
         }
 
@@ -208,7 +209,7 @@ namespace BL_Tests
                 int admin_id = administrator_facade.CreateNewAdmin(administrator_token, demi_administrator);
                 Assert.AreEqual(admin_id, 1);
 
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.CreateNewAdmin(administrator_token, demi_administrator_with_same_email));
+                Assert.ThrowsException<RecordAlreadyExistsException>(() => administrator_facade.CreateNewAdmin(administrator_token, demi_administrator_with_same_email));
             });
         }
 
@@ -276,7 +277,7 @@ namespace BL_Tests
                 int country_id = administrator_facade.CreateNewCountry(administrator_token, demi_country);
                 Assert.AreEqual(country_id, 1);
 
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.CreateNewCountry(administrator_token, demi_country));
+                Assert.ThrowsException<RecordAlreadyExistsException>(() => administrator_facade.CreateNewCountry(administrator_token, demi_country));
             });
         }
 
@@ -367,7 +368,7 @@ namespace BL_Tests
                 long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
                 Assert.AreEqual(customer_id, 1);
 
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.CreateNewCustomer(administrator_token, demi_customer_with_same_phone_number));
+                Assert.ThrowsException<RecordAlreadyExistsException>(() => administrator_facade.CreateNewCustomer(administrator_token, demi_customer_with_same_phone_number));
             });
         }
 
@@ -382,7 +383,7 @@ namespace BL_Tests
                 long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
                 Assert.AreEqual(customer_id, 1);
 
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.CreateNewCustomer(administrator_token, demi_customer_with_same_credit_card));
+                Assert.ThrowsException<RecordAlreadyExistsException>(() => administrator_facade.CreateNewCustomer(administrator_token, demi_customer_with_same_credit_card), "");
             });
         }
 
@@ -635,7 +636,7 @@ namespace BL_Tests
                 demi_country2.Id = country_id2;
                 demi_country2.Name = demi_country.Name;
 
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.UpdateCountryDetails(administrator_token, demi_country2));
+                Assert.ThrowsException<RecordAlreadyExistsException>(() => administrator_facade.UpdateCountryDetails(administrator_token, demi_country2));
             });
         }
 
@@ -683,6 +684,49 @@ namespace BL_Tests
                 administrator_facade.RemoveCustomer(administrator_token, demi_customer);
 
                 Assert.AreEqual(administrator_facade.GetAllCustomers(administrator_token).Count, 0);
+            });
+        }
+
+        [TestMethod]
+        public void Remove_Customer_With_Ticket()
+        {
+            Execute_Test(() =>
+            {
+
+                int country_id = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[0]);
+                int country_id2 = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[1]);
+                int country_id3 = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[2]);
+
+                AirlineCompany demi_airlineCompany = TestData.Get_AirlineCompanies_Data()[0];
+                demi_airlineCompany.CountryId = country_id;
+                long airline_company_id = administrator_facade.CreateNewAirlineCompany(administrator_token, demi_airlineCompany);
+                demi_airlineCompany.Id = airline_company_id;
+
+                system.TryLogin(demi_airlineCompany.User.UserName, demi_airlineCompany.User.Password, out ILoginToken token, out FacadeBase facade);
+                LoggedInAirlineFacade airline_facade = facade as LoggedInAirlineFacade;
+                LoginToken<AirlineCompany> airline_token = token as LoginToken<AirlineCompany>;
+
+                Flight demi_flight = TestData.Get_Flights_Data()[0];
+                long flight_id = airline_facade.CreateFlight(airline_token, demi_flight);
+                demi_flight.Id = flight_id;
+
+                Customer demi_customer = TestData.Get_Customers_Data()[0];
+                long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
+                demi_customer.Id = customer_id;
+
+                system.TryLogin(demi_customer.User.UserName, demi_customer.User.Password, out ILoginToken token2, out FacadeBase facade2);
+                LoggedInCustomerFacade customer_facade = facade2 as LoggedInCustomerFacade;
+                LoginToken<Customer> customer_token = token2 as LoginToken<Customer>;
+
+                Ticket ticket = customer_facade.PurchaseTicket(customer_token, demi_flight);
+                Assert.AreEqual(customer_facade.GetAllMyTickets(customer_token).Count, 1);
+
+
+                administrator_facade.RemoveCustomer(administrator_token, demi_customer);
+
+                Assert.AreEqual(administrator_facade.GetAllCustomers(administrator_token).Count, 0);
+                Assert.AreEqual(customer_facade.GetAllMyTickets(customer_token).Count, 0);
+                Assert.AreEqual(customer_facade.GetTicketHistoryByOriginalId(customer_token, ticket.Id).Id, 1);
             });
         }
 
@@ -748,6 +792,48 @@ namespace BL_Tests
                 administrator_facade.RemoveAirline(administrator_token, demi_airline_company);
 
                 Assert.AreEqual(administrator_facade.GetAllAirlineCompanies().Count, 0);
+            });
+        }
+
+        [TestMethod]
+        public void Remove_Airline_Company_With_Flight_And_Ticket()
+        {
+            Execute_Test(() =>
+            {
+                int country_id = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[0]);
+                int country_id2 = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[1]);
+                int country_id3 = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[2]);
+
+                AirlineCompany demi_airline_company = TestData.Get_AirlineCompanies_Data()[0];
+                demi_airline_company.CountryId = country_id;
+                long airline_company_id = administrator_facade.CreateNewAirlineCompany(administrator_token, demi_airline_company);
+                demi_airline_company.Id = airline_company_id;
+
+                system.TryLogin(demi_airline_company.User.UserName, demi_airline_company.User.Password, out ILoginToken token, out FacadeBase facade);
+                LoggedInAirlineFacade airlineFacade = facade as LoggedInAirlineFacade;
+                LoginToken<AirlineCompany> airlineToken = token as LoginToken<AirlineCompany>;
+
+                Flight demi_flight = TestData.Get_Flights_Data()[0];
+                long flight_id=airlineFacade.CreateFlight(airlineToken,demi_flight);
+                demi_flight.Id = flight_id;
+
+                Customer demi_customer = TestData.Get_Customers_Data()[0];
+                long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
+                demi_customer.Id = customer_id;
+
+                system.TryLogin(demi_customer.User.UserName, demi_customer.User.Password, out ILoginToken token2, out FacadeBase facade2);
+                LoggedInCustomerFacade customerFacade = facade2 as LoggedInCustomerFacade;
+                LoginToken<Customer> customerToken = token2 as LoginToken<Customer>;
+
+                Ticket ticket=customerFacade.PurchaseTicket(customerToken, demi_flight);
+
+                administrator_facade.RemoveAirline(administrator_token, demi_airline_company);
+
+                Assert.AreEqual(administrator_facade.GetAllAirlineCompanies().Count, 0);
+                Assert.AreEqual(administrator_facade.GetAllFlights().Count, 0);
+                Assert.AreEqual(airlineFacade.GetAllTickets(airlineToken).Count, 0);
+                Assert.AreEqual(airlineFacade.GetFlightHistoryByOriginalId(airlineToken,demi_flight.Id).Id, 1);
+                Assert.AreEqual(customerFacade.GetTicketHistoryByOriginalId(customerToken,ticket.Id).Id, 1);
             });
         }
 

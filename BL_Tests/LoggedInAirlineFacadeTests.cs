@@ -63,8 +63,6 @@ namespace BL_Tests
             Login();
             Flight flight = TestData.Get_Flights_Data()[3];
             Flight flight2 = TestData.Get_Flights_Data()[4];
-            flight.AirlineCompany = airline_token.User;
-            flight2.AirlineCompany = airline_token.User;
             long flight_id = airline_facade.CreateFlight(airline_token, flight);
             long flight_id2 = airline_facade.CreateFlight(airline_token, flight2);
             flight.Id = flight_id;
@@ -92,7 +90,6 @@ namespace BL_Tests
             Execute_Test(() =>
             {
                 Flight demi_flight = TestData.Get_Flights_Data()[0];
-                demi_flight.AirlineCompany = airline_token.User;
                 long flight_id = airline_facade.CreateFlight(airline_token, demi_flight);
                 Assert.AreEqual(flight_id, 3);
                 demi_flight.Id = flight_id;
@@ -109,9 +106,6 @@ namespace BL_Tests
             {
                 Flight[] data = TestData.Get_Flights_Data();
                 Flight[] demi_flights = { data[0], data[1], data[2] };
-                demi_flights[0].AirlineCompany = airline_token.User;
-                demi_flights[1].AirlineCompany = airline_token.User;
-                demi_flights[2].AirlineCompany = airline_token.User;
 
                 for (int i = 0; i < demi_flights.Length; i++)
                 {
@@ -136,7 +130,6 @@ namespace BL_Tests
             Execute_Test(() =>
             {
                 Flight demi_flight = TestData.Get_Flights_Data()[0];
-                demi_flight.AirlineCompany = airline_token.User;
                 long flight_id = airline_facade.CreateFlight(airline_token, demi_flight);
                 demi_flight.Id = flight_id;
                 demi_flight.LandingTime = DateTime.Now.AddYears(1);
@@ -153,19 +146,49 @@ namespace BL_Tests
             });
         }
 
-        [TestMethod]//Need to create a test method what will check if flight can be removed also when there are tickets associated with it
+        [TestMethod]
         public void Remove_Flight()
         {
             Execute_Test(() =>
             {
                 Flight demi_flight = TestData.Get_Flights_Data()[0];
-                demi_flight.AirlineCompany = airline_token.User;
                 long flight_id = airline_facade.CreateFlight(airline_token, demi_flight);
                 demi_flight.Id = flight_id;
 
                 airline_facade.CancelFlight(airline_token, demi_flight);
 
                 Assert.AreEqual(airline_facade.GetAllFlights(airline_token).Count, 2);
+
+                FlightHistory flightHistory = airline_facade.GetFlightHistoryByOriginalId(airline_token, flight_id);
+                Assert.AreEqual(flightHistory.Id, 1);
+                Assert.AreEqual(flightHistory.AirlineCompanyId, demi_flight.AirlineCompany.Id);
+                Assert.AreEqual(flightHistory.AirlineCompanyName, demi_flight.AirlineCompany.Name);
+                TestData.CompareDates(flightHistory.DepartureTime, demi_flight.DepartureTime);
+                TestData.CompareDates(flightHistory.LandingTime, demi_flight.LandingTime);
+                Assert.AreEqual(flightHistory.OriginCountryId, demi_flight.OriginCountryId);
+                Assert.AreEqual(flightHistory.DestinationCountryId, demi_flight.DestinationCountryId);
+                Assert.AreEqual(flightHistory.RemainingTickets, demi_flight.RemainingTickets);
+                Assert.AreEqual(flightHistory.FlightStatus, FlightStatus.Cancelled_By_Company);
+            });
+        }
+
+        [TestMethod]
+        public void Remove_Flight_With_Ticket()
+        {
+            Execute_Test(() =>
+            {
+                Flight demi_flight = TestData.Get_Flights_Data()[3];
+                demi_flight.AirlineCompany = airline_token.User;
+                demi_flight.Id = 1;
+
+                airline_facade.CancelFlight(airline_token, demi_flight);
+
+                Assert.AreEqual(airline_facade.GetAllFlights(airline_token).Count, 1);
+
+                FlightHistory flightHistory = airline_facade.GetFlightHistoryByOriginalId(airline_token, demi_flight.Id);
+
+                Assert.AreEqual(airline_facade.GetAllTicketsByFlight(airline_token, demi_flight).Count, 0);
+                Assert.AreEqual(airline_facade.GetFlightHistoryByOriginalId(airline_token, demi_flight.Id).Id, 1);
             });
         }
 

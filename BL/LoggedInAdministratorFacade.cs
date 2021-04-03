@@ -152,6 +152,22 @@ namespace BL
                 if (token.User.Level == AdminLevel.Junior_Admin)
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to remove airline companies. Admin's level is {token.User.Level}");
 
+                IList<Ticket> tickets = _ticketDAO.GetTicketsByAirlineCompany(airlineCompany);
+                if (tickets.Count > 0)
+                    foreach (var ticket in tickets)
+                    {
+                        _flightsTicketsHistoryDAO.Add(ticket, TicketStatus.Cancelled_By_Administrator);
+                        _ticketDAO.Remove(ticket);
+                    }
+
+                IList<Flight> flights= _flightDAO.GetFlightsByAirlineCompany(airlineCompany);
+                if (flights.Count>0)
+                    foreach (var flight in flights)
+                    {
+                        _flightsTicketsHistoryDAO.Add(flight, FlightStatus.Cancelled_By_Administrator);
+                        _flightDAO.Remove(flight);
+                    }
+
                 _airlineDAO.Remove(airlineCompany);
                 _userDAO.Remove(airlineCompany.User);//not sure if this is a proper behavior, wen adding and removing airline/customer/admin is also add or remove user but when editing it only edits the userid
             }, new { Token = token, AirlineCompany = airlineCompany }, _logger);
@@ -174,6 +190,17 @@ namespace BL
             {
                 if (token.User.Level == AdminLevel.Junior_Admin)
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to remove customers. Admin's level is {token.User.Level}");
+
+
+                IList<Ticket> tickets = _ticketDAO.GetTicketsByCustomer(customer);
+
+                if(tickets.Count>0)
+                    foreach (var ticket in tickets)
+                    {
+                        _flightsTicketsHistoryDAO.Add(ticket, TicketStatus.Cancelled_By_Administrator);
+
+                        _ticketDAO.Remove(ticket);
+                    }
 
                 _customerDAO.Remove(customer);
                 _userDAO.Remove(customer.User);//not sure if this is a proper behavior, wen adding and removing airline/customer/admin is also add or remove user but when editing it only edits the userid

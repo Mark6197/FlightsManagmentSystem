@@ -16,13 +16,22 @@ namespace BL
         {
         }
 
-        public void CancelFlight(LoginToken<AirlineCompany> token, Flight flight)//maybe it's not the best sulotion to delete. what to do with the tickets?????
+        public void CancelFlight(LoginToken<AirlineCompany> token, Flight flight)
         {
             Execute(() =>
             {
                 if (token.User != flight.AirlineCompany)
                     throw new NotAllowedAirlineActionException($"Airline company {token.User.Name} not allowed to cancel flight {flight.Id} that belongs to {flight.AirlineCompany.Name}");
 
+                IList<Ticket> tickets = _ticketDAO.GetTicketsByFlight(flight);
+                if (tickets.Count > 0)
+                    foreach (var ticket in tickets)
+                    {
+                        _flightsTicketsHistoryDAO.Add(ticket, TicketStatus.Cancelled_By_Company);
+                        _ticketDAO.Remove(ticket);
+                    }
+
+                _flightsTicketsHistoryDAO.Add(flight, FlightStatus.Cancelled_By_Company);
                 _flightDAO.Remove(flight);
             }, new { Token = token, Flight = flight }, _logger);
         }
@@ -50,8 +59,7 @@ namespace BL
 
             result = Execute(() =>
             {
-                if (token.User != flight.AirlineCompany)
-                    throw new NotAllowedAirlineActionException($"Airline company {token.User.Name} not allowed to add flight {flight.Id} that belongs to {flight.AirlineCompany.Name}");
+                flight.AirlineCompany = token.User;
 
                 result = _flightDAO.Add(flight);
                 return result;
@@ -74,6 +82,33 @@ namespace BL
             IList<Ticket> result = null;
 
             result = Execute(() => _ticketDAO.GetTicketsByAirlineCompany(token.User), new { Token = token }, _logger);
+
+            return result;
+        }
+
+        public IList<Ticket> GetAllTicketsByFlight(LoginToken<AirlineCompany> token, Flight flight)
+        {
+            IList<Ticket> result = null;
+
+            result = Execute(() => _ticketDAO.GetTicketsByFlight(flight), new { Token = token, Flight = flight }, _logger);
+
+            return result;
+        }
+
+        public FlightHistory GetFlightHistoryByOriginalId(LoginToken<AirlineCompany> token, long original_id)
+        {
+            FlightHistory result = null;
+
+            result = Execute(() =>
+            {
+                result = _flightsTicketsHistoryDAO.GetFlightHistory(original_id);
+
+                if (result != null && token.User.Id != result.AirlineCompanyId)
+                    throw new NotAllowedAirlineActionException($"{token.User.Name} company not allowed to view the details of {result.AirlineCompanyName}'s cancelled flight id: {result.OriginalId}");
+
+                return result;
+
+            }, new { Token = token, OriginalId = original_id }, _logger);
 
             return result;
         }

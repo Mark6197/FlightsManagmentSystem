@@ -69,13 +69,13 @@ namespace BL
 
                 foreach (Flight flight in flights_with_tickets.Keys)//Run over all the keys (flights) in the dictionary
                 {
-                    flightsTicketsHistoryDAO.Add(flight);//Add the flight to history table
+                    flightsTicketsHistoryDAO.Add(flight, FlightStatus.Landed);//Add the flight to history table
 
                     foreach (Ticket ticket in flights_with_tickets[flight])//Run over all the tickets of the flight
                     {
                         if (ticket.Id != 0)//If there is no tickets associated with the flight there will be one ticket with id, we don't want to add this ticket to the history
                         {
-                            flightsTicketsHistoryDAO.Add(ticket);//Add ticket to history table
+                            flightsTicketsHistoryDAO.Add(ticket, TicketStatus.Redeemed);//Add ticket to history table
                             ticketDAO.Remove(ticket);//Remove the ticket from original table
                             tickets_count++;
                         }
@@ -117,7 +117,7 @@ namespace BL
             token = null;
             facade = GetFacade<AnonymousUserFacade>();
 
-            bool is_success=loginService.TryLogin(user_name, password, out ILoginToken login_token, out FacadeBase facade_base);
+            bool is_success = loginService.TryLogin(user_name, password, out ILoginToken login_token, out FacadeBase facade_base);
 
             if (is_success)
             {

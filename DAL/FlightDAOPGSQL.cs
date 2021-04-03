@@ -423,7 +423,8 @@ namespace DAL
                                 Id = flight.Id,
                                 AirlineCompany = new AirlineCompany
                                 {
-                                    Id = (long)reader["airline_company_id"]
+                                    Id = (long)reader["airline_company_id"],
+                                    Name=(string)reader["airline_company_name"]
                                 },
                                 OriginCountryId = (int)reader["origin_country_id"],
                                 DestinationCountryId = (int)reader["destination_country_id"],
@@ -439,6 +440,12 @@ namespace DAL
                                     Customer=new Customer
                                     {
                                         Id=(reader["customer_id"]==DBNull.Value? 0:(long)reader["customer_id"]),//Same as the id above
+                                        FirstName=(reader["first_name"]==DBNull.Value? null:(string)reader["first_name"]),
+                                        LastName=(reader["last_name"]==DBNull.Value? null:(string)reader["last_name"]),
+                                        User=new User
+                                        {
+                                            UserName=(reader["username"]==DBNull.Value? null:(string)reader["username"]),
+                                        }
                                     },
                                     Flight=new Flight
                                     {
@@ -455,7 +462,13 @@ namespace DAL
                                 Id = (long)reader["ticket_id"],
                                 Customer = new Customer
                                 {
-                                    Id = (long)reader["customer_id"]
+                                    Id = (long)reader["customer_id"],
+                                    FirstName = (reader["first_name"] == DBNull.Value ? null : (string)reader["first_name"]),
+                                    LastName = (reader["last_name"] == DBNull.Value ? null : (string)reader["last_name"]),
+                                    User = new User
+                                    {
+                                        UserName = (reader["username"] == DBNull.Value ? null : (string)reader["username"]),
+                                    }
                                 },
                                 Flight = new Flight
                                 {

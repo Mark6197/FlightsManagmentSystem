@@ -18,6 +18,7 @@ namespace BL
         protected IUserDAO _userDAO;
         protected IFlightDAO _flightDAO;
         protected ITicketDAO _ticketDAO;
+        protected IFlightsTicketsHistoryDAO _flightsTicketsHistoryDAO;
 
         protected FacadeBase()
         {
@@ -28,6 +29,7 @@ namespace BL
             _userDAO = new UserDAOPGSQL();
             _flightDAO = new FlightDAOPGSQL();
             _ticketDAO = new TicketDAOPGSQL();
+            _flightsTicketsHistoryDAO = new FlightsTicketsHistoryDAOPGSQL();
         }
 
         protected T Execute<T>(Func<T> func, object props_holder, ILog _logger, [CallerMemberName] string callerName = "")

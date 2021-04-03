@@ -182,7 +182,137 @@ namespace DAL
                                 LastName = (string)reader["last_name"],
                                 Address = (string)reader["address"],
                                 PhoneNumber = (string)reader["phone_number"],
-                                CreditCardNumber = (string)reader["credit_card_number"]
+                                CreditCardNumber = (string)reader["credit_card_number"],
+                                User = new User
+                                {
+                                    Id = (long)reader["user_id"],
+                                    UserName = (string)reader["username"],
+                                    Password = (string)reader["password"],
+                                    Email = (string)reader["email"],
+                                    UserRole = (UserRoles)reader["user_role_id"]
+                                }
+                            }
+                        });
+                }
+
+                return result;
+            }, new { }, conn, _logger);
+
+            return result;
+        }
+
+        public IList<Ticket> GetTicketsByCustomer(Customer customer)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Ticket> result = new List<Ticket>();
+
+            result = Execute(() =>
+            {
+                string procedure = "sp_get_tickets_by_customer";
+
+                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
+                command.Parameters.Add(new NpgsqlParameter("_customer_id", customer.Id));
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    result.Add(
+                        new Ticket
+                        {
+                            Id = (long)reader["ticket_id"],
+                            Flight = new Flight
+                            {
+                                Id = (long)reader["flight_id"],
+                                AirlineCompany = new AirlineCompany
+                                {
+                                    Id = (long)reader["airline_company_id"],
+                                    Name = (string)reader["airline_company_name"],
+                                    CountryId = (int)reader["airline_company_country_id"]
+                                },
+                                OriginCountryId = (int)reader["origin_country_id"],
+                                DestinationCountryId = (int)reader["destination_country_id"],
+                                DepartureTime = (DateTime)reader["departure_time"],
+                                LandingTime = (DateTime)reader["landing_time"],
+                                RemainingTickets = (int)reader["remaining_tickets"]
+                            },
+                            Customer = new Customer
+                            {
+                                Id = (long)reader["customer_id"],
+                                FirstName = (string)reader["first_name"],
+                                LastName = (string)reader["last_name"],
+                                Address = (string)reader["address"],
+                                PhoneNumber = (string)reader["phone_number"],
+                                CreditCardNumber = (string)reader["credit_card_number"],
+                                User = new User
+                                {
+                                    Id = (long)reader["user_id"],
+                                    UserName = (string)reader["username"],
+                                    Password = (string)reader["password"],
+                                    Email = (string)reader["email"],
+                                    UserRole = (UserRoles)reader["user_role_id"]
+                                }
+                            }
+                        });
+                }
+
+                return result;
+            }, new { }, conn, _logger);
+
+            return result;
+        }
+
+        public IList<Ticket> GetTicketsByFlight(Flight flight)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Ticket> result = new List<Ticket>();
+
+            result = Execute(() =>
+            {
+                string procedure = "sp_get_tickets_by_flight";
+
+                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
+                command.Parameters.Add(new NpgsqlParameter("_flight_id", flight.Id));
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    result.Add(
+                        new Ticket
+                        {
+                            Id = (long)reader["ticket_id"],
+                            Flight = new Flight
+                            {
+                                Id = (long)reader["flight_id"],
+                                AirlineCompany = new AirlineCompany
+                                {
+                                    Id = (long)reader["airline_company_id"],
+                                    Name = (string)reader["airline_company_name"],
+                                    CountryId = (int)reader["airline_company_country_id"]
+                                },
+                                OriginCountryId = (int)reader["origin_country_id"],
+                                DestinationCountryId = (int)reader["destination_country_id"],
+                                DepartureTime = (DateTime)reader["departure_time"],
+                                LandingTime = (DateTime)reader["landing_time"],
+                                RemainingTickets = (int)reader["remaining_tickets"]
+                            },
+                            Customer = new Customer
+                            {
+                                Id = (long)reader["customer_id"],
+                                FirstName = (string)reader["first_name"],
+                                LastName = (string)reader["last_name"],
+                                Address = (string)reader["address"],
+                                PhoneNumber = (string)reader["phone_number"],
+                                CreditCardNumber = (string)reader["credit_card_number"],
+                                User = new User
+                                {
+                                    Id = (long)reader["user_id"],
+                                    UserName = (string)reader["username"],
+                                    Password = (string)reader["password"],
+                                    Email = (string)reader["email"],
+                                    UserRole = (UserRoles)reader["user_role_id"]
+                                }
                             }
                         });
                 }

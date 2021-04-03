@@ -2,6 +2,6 @@
   "FlightsManagmentSystem": {
     "ConnectionString": "Host=localhost;Username=postgres;Password=admin;Database=flights_managment_system;",
     "MaxConnections": 40,
-    "WorkTime": "19:00:00"
+    "WorkTime": "18:17:45"
   }
 }

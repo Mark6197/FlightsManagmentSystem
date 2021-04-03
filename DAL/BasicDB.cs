@@ -1,4 +1,5 @@
 ﻿using ConfigurationService;
+using DAL.Exceptions;
 using Domain.Entities;
 using Domain.ExtentionMethods;
 using Domain.Interfaces;
@@ -144,6 +145,17 @@ namespace DAL
             {
                 result = func.Invoke();
             }
+            catch (PostgresException ex)
+            {
+                switch (ex.SqlState)
+                {
+                    case "23505":
+                        throw new RecordAlreadyExistsException(ex, ex.TableName,ex.Statement.ToString(),ex.ConstraintName);
+                    default:
+                        throw ex;
+                }
+                throw ex;
+            }
             finally
             {
                 DbConnectionPool.Instance.ReturnConnection(conn);
@@ -167,6 +179,16 @@ namespace DAL
             try
             {
                 action.Invoke();
+            }
+            catch (PostgresException ex)
+            {
+                switch (ex.SqlState)
+                {
+                    case "23505":
+                        throw new RecordAlreadyExistsException(ex, ex.TableName, ex.Statement.ToString(), ex.ConstraintName);
+                    default:
+                        throw ex;
+                }
             }
             finally
             {

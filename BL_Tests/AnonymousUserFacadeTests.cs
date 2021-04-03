@@ -75,12 +75,7 @@ namespace BL_Tests
             Flight flight4 = TestData.Get_Flights_Data_For_Anonymous_Tests()[3];
             Flight flight5 = TestData.Get_Flights_Data_For_Anonymous_Tests()[4];
             Flight flight6 = TestData.Get_Flights_Data_For_Anonymous_Tests()[5];
-            flight.AirlineCompany = airline_token.User;
-            flight2.AirlineCompany = airline_token.User;
-            flight3.AirlineCompany = airline_token.User;
-            flight4.AirlineCompany = airline_token.User;
-            flight5.AirlineCompany = airline_token.User;
-            flight6.AirlineCompany = airline_token.User;
+
             long flight_id = airline_facade.CreateFlight(airline_token, flight);
             long flight_id2 = airline_facade.CreateFlight(airline_token, flight2);
             long flight_id3 = airline_facade.CreateFlight(airline_token, flight3);

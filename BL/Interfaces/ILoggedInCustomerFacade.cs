@@ -11,5 +11,6 @@ namespace BL.Interfaces
         Ticket GetTicketById(LoginToken<Customer> token, long id);
         Ticket PurchaseTicket(LoginToken<Customer> token, Flight flight);
         void CancelTicket(LoginToken<Customer> token, Ticket ticket);
+        TicketHistory GetTicketHistoryByOriginalId(LoginToken<Customer> token, long original_id);
     }
 }

@@ -2,6 +2,7 @@
 using BL.Exceptions;
 using BL.LoginService;
 using ConfigurationService;
+using DAL.Exceptions;
 using Domain.Entities;
 using log4net;
 using log4net.Config;
@@ -68,9 +69,7 @@ namespace BL_Tests
             Flight flight = TestData.Get_Flights_Data()[3];
             Flight flight2 = TestData.Get_Flights_Data()[4];
             Flight flight3 = TestData.Get_Flights_Data()[5];
-            flight.AirlineCompany = airlineLoginToken.User;
-            flight2.AirlineCompany = airlineLoginToken.User;
-            flight3.AirlineCompany = airlineLoginToken.User;
+          
             long flight_id = loggedInAirlineFacade.CreateFlight(airlineLoginToken, flight);
             long flight_id2 = loggedInAirlineFacade.CreateFlight(airlineLoginToken, flight2);
             long flight_id3 = loggedInAirlineFacade.CreateFlight(airlineLoginToken, flight3);
@@ -129,8 +128,8 @@ namespace BL_Tests
                 IList<Ticket> my_tickets = customer_facade.GetAllMyTickets(customer_token);
                 Assert.AreEqual(my_tickets.Count, 2);
 
-                TestData.CompareProps(my_tickets[0], ticket, true);
-                TestData.CompareProps(my_tickets[1], ticket2, true);
+                TestData.CompareProps(my_tickets[0], ticket);
+                TestData.CompareProps(my_tickets[1], ticket2);
 
                 IList<Flight> my_flights = customer_facade.GetAllMyFlights(customer_token);
                 Assert.AreEqual(my_flights[0], flight);
@@ -146,7 +145,7 @@ namespace BL_Tests
                 Flight flight = customer_facade.GetFlightById(1);
                 Ticket ticket = customer_facade.PurchaseTicket(customer_token, flight);
                 Assert.AreEqual(ticket.Id, 2);
-                Assert.ThrowsException<PostgresException>(() => customer_facade.PurchaseTicket(customer_token, flight));
+                Assert.ThrowsException<RecordAlreadyExistsException>(() => customer_facade.PurchaseTicket(customer_token, flight));
             });
         }
 
@@ -180,6 +179,14 @@ namespace BL_Tests
                 flight = customer_facade.GetFlightById(1);
                 int empty_seates_after_cancellation = flight.RemainingTickets;
                 Assert.AreEqual(empty_seates_before_cancellation + 1, empty_seates_after_cancellation);
+
+                TicketHistory ticketHistory = customer_facade.GetTicketHistoryByOriginalId(customer_token, ticket.Id);
+                Assert.AreEqual(ticketHistory.Id, 1);
+                Assert.AreEqual(ticketHistory.FlightId, ticket.Flight.Id);
+                Assert.AreEqual(ticketHistory.CustomerId, ticket.Customer.Id);
+                Assert.AreEqual(ticketHistory.CustomerFullName, ticket.Customer.FirstName + " " + ticket.Customer.LastName);
+                Assert.AreEqual(ticketHistory.CustomerUserName, ticket.Customer.User.UserName);
+                Assert.AreEqual(ticketHistory.TicketStatus, TicketStatus.Cancelled_By_Customer);
             });
         }
 
@@ -188,7 +195,7 @@ namespace BL_Tests
         {
             Execute_Test(() =>
             {
-                Assert.ThrowsException<NotAllowedCustomerActionException>(() => customer_facade.GetTicketById(customer_token, 1));
+                Assert.ThrowsException<WrongCustomerException>(() => customer_facade.GetTicketById(customer_token, 1));
             });
         }
 
@@ -197,7 +204,7 @@ namespace BL_Tests
         {
             Execute_Test(() =>
             {
-                Assert.ThrowsException<NotAllowedCustomerActionException>(() => customer_facade.CancelTicket(customer_token, new Ticket(new Flight(), new Customer { Id = 2 }, 1)));
+                Assert.ThrowsException<WrongCustomerException>(() => customer_facade.CancelTicket(customer_token, new Ticket(new Flight(), new Customer { Id = 2 }, 1)));
             });
         }
     }
