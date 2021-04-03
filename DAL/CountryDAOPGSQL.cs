@@ -38,21 +38,10 @@ namespace DAL
 
             result = Execute(() =>
             {
-                string procedure = "sp_get_country";
+                List<Country> countries = Run_Generic_SP("sp_get_country", new { _id = (int)id }, conn);
 
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_id", (int)id));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    result = new Country
-                    {
-                        Id = (int)reader["id"],
-                        Name = (string)reader["name"]
-                    };
-                }
+                if (countries.Count > 0)
+                    result = countries[0];
 
                 return result;
             }, new { Id = id }, conn, _logger);
@@ -65,26 +54,7 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Country> result = new List<Country>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_all_countries";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Country
-                        {
-                            Id = (int)reader["id"],
-                            Name = (string)reader["name"]
-                        });
-                }
-
-                return result;
-            }, new { }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_all_countries", new { }, conn), new { }, conn, _logger);
 
             return result;
         }

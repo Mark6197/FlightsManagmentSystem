@@ -44,24 +44,10 @@ namespace DAL
 
             result = Execute(() =>
             {
-                string procedure = "sp_get_user";
+                List<User> users = Run_Generic_SP("sp_get_user", new { _id = id }, conn);
 
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_id", id));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    result = new User
-                    {
-                        Id = (long)reader["id"],
-                        UserName = (string)reader["username"],
-                        Password = (string)reader["password"],
-                        Email = (string)reader["email"],
-                        UserRole = (UserRoles)reader["user_role_id"]
-                    };
-                }
+                if (users.Count > 0)
+                    result = users[0];
 
                 return result;
             }, new { Id = id }, conn, _logger);
@@ -74,29 +60,7 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<User> result = new List<User>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_all_users";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new User
-                        {
-                            Id = (long)reader["id"],
-                            UserName = (string)reader["username"],
-                            Password = (string)reader["password"],
-                            Email = (string)reader["email"],
-                            UserRole = (UserRoles)reader["user_role_id"]
-                        });
-                }
-
-                return result;
-            }, new { }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_all_users", new { }, conn), new { }, conn, _logger);
 
             return result;
         }

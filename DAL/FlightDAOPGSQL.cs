@@ -48,31 +48,10 @@ namespace DAL
 
             result = Execute(() =>
             {
-                string procedure = "sp_get_flight";
+                List<Flight> flights = Run_Generic_SP("sp_get_flight", new { _id = id }, conn, true);
 
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_id", id));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    result = new Flight
-                    {
-                        Id = (long)reader["flight_id"],
-                        AirlineCompany = new AirlineCompany
-                        {
-                            Id = (long)reader["airline_company_id"],
-                            Name = (string)reader["airline_company_name"],
-                            CountryId = (int)reader["airline_company_country_id"]
-                        },
-                        OriginCountryId = (int)reader["origin_country_id"],
-                        DestinationCountryId = (int)reader["destination_country_id"],
-                        DepartureTime = (DateTime)reader["departure_time"],
-                        LandingTime = (DateTime)reader["landing_time"],
-                        RemainingTickets = (int)reader["remaining_tickets"]
-                    };
-                }
+                if (flights.Count > 0)
+                    result = flights[0];
 
                 return result;
             }, new { Id = id }, conn, _logger);
@@ -85,36 +64,7 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Flight> result = new List<Flight>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_all_flights";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Flight
-                        {
-                            Id = (long)reader["flight_id"],
-                            AirlineCompany = new AirlineCompany
-                            {
-                                Id = (long)reader["airline_company_id"],
-                                Name = (string)reader["airline_company_name"],
-                                CountryId = (int)reader["airline_company_country_id"]
-                            },
-                            OriginCountryId = (int)reader["origin_country_id"],
-                            DestinationCountryId = (int)reader["destination_country_id"],
-                            DepartureTime = (DateTime)reader["departure_time"],
-                            LandingTime = (DateTime)reader["landing_time"],
-                            RemainingTickets = (int)reader["remaining_tickets"]
-                        });
-                }
-
-                return result;
-            }, new { }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_all_flights", new { }, conn, true), new { }, conn, _logger);
 
             return result;
         }
@@ -163,36 +113,8 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Flight> result = new List<Flight>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_flights_by_airline_company";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_airline_company_id", airlineCompany.Id));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Flight
-                        {
-                            Id = (long)reader["flight_id"],
-                            AirlineCompany = new AirlineCompany
-                            {
-                                Id = (long)reader["airline_company_id"],
-                                Name = (string)reader["airline_company_name"],
-                                CountryId = (int)reader["airline_company_country_id"]
-                            },
-                            OriginCountryId = (int)reader["origin_country_id"],
-                            DestinationCountryId = (int)reader["destination_country_id"],
-                            DepartureTime = (DateTime)reader["departure_time"],
-                            LandingTime = (DateTime)reader["landing_time"],
-                            RemainingTickets = (int)reader["remaining_tickets"]
-                        });
-                }
-                return result;
-            }, new { AirlineCompany = airlineCompany }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_flights_by_airline_company", new { _airline_company_id = airlineCompany.Id }, conn, true),
+                new { AirlineCompany = airlineCompany }, conn, _logger);
 
             return result;
         }
@@ -202,36 +124,8 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Flight> result = new List<Flight>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_flights_by_customer";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_customer_id", customer.Id));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Flight
-                        {
-                            Id = (long)reader["flight_id"],
-                            AirlineCompany = new AirlineCompany
-                            {
-                                Id = (long)reader["airline_company_id"],
-                                Name = (string)reader["airline_company_name"],
-                                CountryId = (int)reader["airline_company_country_id"]
-                            },
-                            OriginCountryId = (int)reader["origin_country_id"],
-                            DestinationCountryId = (int)reader["destination_country_id"],
-                            DepartureTime = (DateTime)reader["departure_time"],
-                            LandingTime = (DateTime)reader["landing_time"],
-                            RemainingTickets = (int)reader["remaining_tickets"]
-                        });
-                }
-                return result;
-            }, new { Customer = customer }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_flights_by_customer", new { _customer_id = customer.Id }, conn, true),
+                new { Customer = customer }, conn, _logger);
 
             return result;
         }
@@ -241,36 +135,8 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Flight> result = new List<Flight>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_flights_by_departure_date";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_departure_date", (NpgsqlDate)departureDate));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Flight
-                        {
-                            Id = (long)reader["flight_id"],
-                            AirlineCompany = new AirlineCompany
-                            {
-                                Id = (long)reader["airline_company_id"],
-                                Name = (string)reader["airline_company_name"],
-                                CountryId = (int)reader["airline_company_country_id"]
-                            },
-                            OriginCountryId = (int)reader["origin_country_id"],
-                            DestinationCountryId = (int)reader["destination_country_id"],
-                            DepartureTime = (DateTime)reader["departure_time"],
-                            LandingTime = (DateTime)reader["landing_time"],
-                            RemainingTickets = (int)reader["remaining_tickets"]
-                        });
-                }
-                return result;
-            }, new { DepartureDate = departureDate }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_flights_by_departure_date", new { _departure_date = (NpgsqlDate)departureDate }, conn, true),
+                new { DepartureDate = departureDate }, conn, _logger);
 
             return result;
         }
@@ -280,37 +146,8 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Flight> result = new List<Flight>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_flights_by_destination_country";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_destination_country_id", countryId));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Flight
-                        {
-                            Id = (long)reader["flight_id"],
-                            AirlineCompany = new AirlineCompany
-                            {
-                                Id = (long)reader["airline_company_id"],
-                                Name = (string)reader["airline_company_name"],
-                                CountryId = (int)reader["airline_company_country_id"]
-                            },
-                            OriginCountryId = (int)reader["origin_country_id"],
-                            DestinationCountryId = (int)reader["destination_country_id"],
-                            DepartureTime = (DateTime)reader["departure_time"],
-                            LandingTime = (DateTime)reader["landing_time"],
-                            RemainingTickets = (int)reader["remaining_tickets"]
-                        });
-                }
-
-                return result;
-            }, new { CountryId = countryId }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_flights_by_destination_country", new { _destination_country_id = countryId }, conn, true),
+                new { CountryId = countryId }, conn, _logger);
 
             return result;
         }
@@ -320,38 +157,9 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Flight> result = new List<Flight>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_flights_by_landing_date";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_landing_date", (NpgsqlDate)landingDate));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Flight
-                        {
-                            Id = (long)reader["flight_id"],
-                            AirlineCompany = new AirlineCompany
-                            {
-                                Id = (long)reader["airline_company_id"],
-                                Name = (string)reader["airline_company_name"],
-                                CountryId = (int)reader["airline_company_country_id"]
-                            },
-                            OriginCountryId = (int)reader["origin_country_id"],
-                            DestinationCountryId = (int)reader["destination_country_id"],
-                            DepartureTime = (DateTime)reader["departure_time"],
-                            LandingTime = (DateTime)reader["landing_time"],
-                            RemainingTickets = (int)reader["remaining_tickets"]
-                        });
-                }
-
-                return result;
-            }, new { LandingDate = landingDate }, conn, _logger);
-
+            result = Execute(() => Run_Generic_SP("sp_get_flights_by_landing_date", new { _landing_date = (NpgsqlDate)landingDate }, conn, true),
+                new { LandingDate = landingDate }, conn, _logger);
+         
             return result;
         }
 
@@ -359,39 +167,10 @@ namespace DAL
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Flight> result = new List<Flight>();
-
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_flights_by_origin_country";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_origin_country_id", countryId));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Flight
-                        {
-                            Id = (long)reader["flight_id"],
-                            AirlineCompany = new AirlineCompany
-                            {
-                                Id = (long)reader["airline_company_id"],
-                                Name = (string)reader["airline_company_name"],
-                                CountryId = (int)reader["airline_company_country_id"]
-                            },
-                            OriginCountryId = (int)reader["origin_country_id"],
-                            DestinationCountryId = (int)reader["destination_country_id"],
-                            DepartureTime = (DateTime)reader["departure_time"],
-                            LandingTime = (DateTime)reader["landing_time"],
-                            RemainingTickets = (int)reader["remaining_tickets"]
-                        });
-                }
-
-                return result;
-            }, new { CountryId = countryId }, conn, _logger);
-
+           
+            result = Execute(() => Run_Generic_SP("sp_get_flights_by_origin_country", new { _origin_country_id = countryId }, conn, true),
+              new { CountryId = countryId }, conn, _logger);
+           
             return result;
         }
 
@@ -424,7 +203,7 @@ namespace DAL
                                 AirlineCompany = new AirlineCompany
                                 {
                                     Id = (long)reader["airline_company_id"],
-                                    Name=(string)reader["airline_company_name"]
+                                    Name = (string)reader["airline_company_name"]
                                 },
                                 OriginCountryId = (int)reader["origin_country_id"],
                                 DestinationCountryId = (int)reader["destination_country_id"],

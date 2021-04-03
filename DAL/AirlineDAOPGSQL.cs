@@ -41,33 +41,12 @@ namespace DAL
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             AirlineCompany result = null;
-
             result = Execute(() =>
             {
-                string procedure = "sp_get_airline_company";
+                List<AirlineCompany> airlineCompanies = Run_Generic_SP("sp_get_airline_company", new { _id = id }, conn);
 
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_id", id));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    result = new AirlineCompany
-                    {
-                        Id = (long)reader["airline_company_id"],
-                        Name = (string)reader["airline_company_name"],
-                        CountryId = (int)reader["airline_company_country_id"],
-                        User = new User
-                        {
-                            Id = (long)reader["user_id"],
-                            UserName = (string)reader["username"],
-                            Password = (string)reader["password"],
-                            Email = (string)reader["email"],
-                            UserRole = (UserRoles)reader["user_role_id"]
-                        }
-                    };
-                }
+                if (airlineCompanies.Count > 0)
+                    result = airlineCompanies[0];
 
                 return result;
             }, new { Id = id }, conn, _logger);
@@ -77,95 +56,44 @@ namespace DAL
 
         public AirlineCompany GetAirlineCompanyByUserId(long user_id)
         {
-                NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
-                AirlineCompany result = null;
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            AirlineCompany result = null;
 
-                result = Execute(() =>
-                {
-                    List<AirlineCompany> airlineCompanies = Run_Generic_SP("sp_get_airline_company_by_user_id", new { _user_id = user_id }, conn);
+            result = Execute(() =>
+            {
+                List<AirlineCompany> airlineCompanies = Run_Generic_SP("sp_get_airline_company_by_user_id", new { _user_id = user_id }, conn);
 
-                    if (airlineCompanies.Count > 0)
-                        result = airlineCompanies[0];
-
-                    return result;
-                }, new { UserId = user_id }, conn, _logger);
+                if (airlineCompanies.Count > 0)
+                    result = airlineCompanies[0];
 
                 return result;
+            }, new { UserId = user_id }, conn, _logger);
+
+            return result;
         }
 
         public AirlineCompany GetAirlineByUsername(string username)
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             AirlineCompany result = null;
-
             result = Execute(() =>
             {
-                string procedure = "sp_get_airline_company_by_username";
+                List<AirlineCompany> airlineCompanies = Run_Generic_SP("sp_get_airline_company_by_username", new { _username = username }, conn);
 
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_username", username));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    result = new AirlineCompany
-                    {
-                        Id = (long)reader["airline_company_id"],
-                        Name = (string)reader["airline_company_name"],
-                        CountryId = (int)reader["airline_company_country_id"],
-                        User = new User
-                        {
-                            Id = (long)reader["user_id"],
-                            UserName = (string)reader["username"],
-                            Password = (string)reader["password"],
-                            Email = (string)reader["email"],
-                            UserRole = (UserRoles)reader["user_role_id"]
-                        }
-                    };
-                }
+                if (airlineCompanies.Count > 0)
+                    result = airlineCompanies[0];
 
                 return result;
             }, new { Username = username }, conn, _logger);
 
             return result;
-
         }
 
         public override IList<AirlineCompany> GetAll()
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<AirlineCompany> result = new List<AirlineCompany>();
-
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_all_airline_companies";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new AirlineCompany
-                        {
-                            Id = (long)reader["airline_company_id"],
-                            Name = (string)reader["airline_company_name"],
-                            CountryId = (int)reader["airline_company_country_id"],
-                            User = new User
-                            {
-                                Id = (long)reader["user_id"],
-                                UserName = (string)reader["username"],
-                                Password = (string)reader["password"],
-                                Email = (string)reader["email"],
-                                UserRole = (UserRoles)reader["user_role_id"]
-                            }
-                        });
-                }
-
-                return result;
-            }, new { }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_all_airline_companies", new { }, conn), new { }, conn, _logger);
 
             return result;
         }
@@ -174,38 +102,7 @@ namespace DAL
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<AirlineCompany> result = new List<AirlineCompany>();
-
-            result = Execute(() =>
-            {
-
-                string procedure = "sp_get_all_airline_companies_by_country";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_country_id", countryId));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new AirlineCompany
-                        {
-                            Id = (long)reader["airline_company_id"],
-                            Name = (string)reader["airline_company_name"],
-                            CountryId = (int)reader["airline_company_country_id"],
-                            User = new User
-                            {
-                                Id = (long)reader["user_id"],
-                                UserName = (string)reader["username"],
-                                Password = (string)reader["password"],
-                                Email = (string)reader["email"],
-                                UserRole = (UserRoles)reader["user_role_id"]
-                            }
-                        });
-                }
-
-                return result;
-            }, new { CountryId = countryId }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_all_airline_companies_by_country", new { _country_id = countryId }, conn), new { CountryId = countryId }, conn, _logger);
 
             return result;
         }

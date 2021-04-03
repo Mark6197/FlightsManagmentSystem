@@ -43,35 +43,13 @@ namespace DAL
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             Customer result = null;
+
             result = Execute(() =>
             {
-                string procedure = "sp_get_customer";
+                List<Customer> customers = Run_Generic_SP("sp_get_customer", new { _id = id }, conn);
 
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_id", id));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    result = new Customer
-                    {
-                        Id = (long)reader["customer_id"],
-                        FirstName = (string)reader["first_name"],
-                        LastName = (string)reader["last_name"],
-                        Address = (string)reader["address"],
-                        PhoneNumber = (string)reader["phone_number"],
-                        CreditCardNumber = (string)reader["credit_card_number"],
-                        User = new User
-                        {
-                            Id = (long)reader["user_id"],
-                            UserName = (string)reader["username"],
-                            Password = (string)reader["password"],
-                            Email = (string)reader["email"],
-                            UserRole = (UserRoles)reader["user_role_id"]
-                        }
-                    };
-                }
+                if (customers.Count > 0)
+                    result = customers[0];
 
                 return result;
             }, new { Id = id }, conn, _logger);
@@ -84,38 +62,7 @@ namespace DAL
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Customer> result = new List<Customer>();
 
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_all_customers";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Customer
-                        {
-                            Id = (long)reader["customer_id"],
-                            FirstName = (string)reader["first_name"],
-                            LastName = (string)reader["last_name"],
-                            Address = (string)reader["address"],
-                            PhoneNumber = (string)reader["phone_number"],
-                            CreditCardNumber = (string)reader["credit_card_number"],
-                            User = new User
-                            {
-                                Id = (long)reader["user_id"],
-                                UserName = (string)reader["username"],
-                                Password = (string)reader["password"],
-                                Email = (string)reader["email"],
-                                UserRole = (UserRoles)reader["user_role_id"]
-                            }
-                        });
-                }
-
-                return result;
-            }, new { }, conn, _logger);
+            result = Execute(() => Run_Generic_SP("sp_get_all_customers", new { }, conn), new { }, conn, _logger);
 
             return result;
         }
@@ -142,35 +89,13 @@ namespace DAL
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             Customer result = null;
+
             result = Execute(() =>
             {
-                string procedure = "sp_get_customer_by_username";
+                List<Customer> customers = Run_Generic_SP("sp_get_customer_by_username", new { _username = username }, conn);
 
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_username", username));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    result = new Customer
-                    {
-                        Id = (long)reader["customer_id"],
-                        FirstName = (string)reader["first_name"],
-                        LastName = (string)reader["last_name"],
-                        Address = (string)reader["address"],
-                        PhoneNumber = (string)reader["phone_number"],
-                        CreditCardNumber = (string)reader["credit_card_number"],
-                        User = new User
-                        {
-                            Id = (long)reader["user_id"],
-                            UserName = (string)reader["username"],
-                            Password = (string)reader["password"],
-                            Email = (string)reader["email"],
-                            UserRole = (UserRoles)reader["user_role_id"]
-                        }
-                    };
-                }
+                if (customers.Count > 0)
+                    result = customers[0];
 
                 return result;
             }, new { Username = username }, conn, _logger);

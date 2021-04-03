@@ -2,13 +2,9 @@
 using Domain.Interfaces;
 using log4net;
 using Npgsql;
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
+
 
 namespace DAL
 {
@@ -51,31 +47,11 @@ namespace DAL
 
             result = Execute(() =>
             {
-                string procedure = "sp_get_administrator";
+                List<Administrator> administrators = Run_Generic_SP("sp_get_administrator", new { _id = (int)id }, conn);
 
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.Parameters.Add(new NpgsqlParameter("_id", (int)id));
-                command.CommandType = System.Data.CommandType.StoredProcedure;
+                if (administrators.Count > 0)
+                    result = administrators[0];
 
-                var reader = command.ExecuteReader();
-                if (reader.Read())
-                {
-                    result = new Administrator
-                    {
-                        Id = (int)reader["admin_id"],
-                        FirstName = (string)reader["first_name"],
-                        LastName = (string)reader["last_name"],
-                        Level = (AdminLevel)reader["level"],
-                        User = new User
-                        {
-                            Id = (long)reader["user_id"],
-                            UserName = (string)reader["username"],
-                            Password = (string)reader["password"],
-                            Email = (string)reader["email"],
-                            UserRole = (UserRoles)reader["user_role_id"]
-                        }
-                    };
-                }
                 return result;
             }, new { Id = id }, conn, _logger);
 
@@ -104,37 +80,8 @@ namespace DAL
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             List<Administrator> result = new List<Administrator>();
-
-            result = Execute(() =>
-            {
-                string procedure = "sp_get_all_administrators";
-
-                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    result.Add(
-                        new Administrator
-                        {
-                            Id = (int)reader["admin_id"],
-                            FirstName = (string)reader["first_name"],
-                            LastName = (string)reader["last_name"],
-                            Level = (AdminLevel)reader["level"],
-                            User = new User
-                            {
-                                Id = (long)reader["user_id"],
-                                UserName = (string)reader["username"],
-                                Password = (string)reader["password"],
-                                Email = (string)reader["email"],
-                                UserRole = (UserRoles)reader["user_role_id"]
-                            }
-                        });
-                }
-                return result;
-            }, new { }, conn, _logger);
-
+            result = Execute(() =>Run_Generic_SP("sp_get_all_administrators", new { }, conn), new { }, conn, _logger);
+            
             return result;
         }
 
