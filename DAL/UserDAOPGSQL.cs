@@ -108,7 +108,7 @@ namespace DAL
 
             result = Execute(() =>
             {
-                List<User> users = Run_Generic_SP("sp_get_user_by_username_and_password", new { _username = username, _password = password });
+                List<User> users = Run_Generic_SP("sp_get_user_by_username_and_password", new { _username = username, _password = password }, conn);
                 if (users.Count > 0)
                     result = users[0];
 

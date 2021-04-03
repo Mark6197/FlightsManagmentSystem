@@ -88,46 +88,24 @@ namespace DAL
         /// <param name="dataHolder">Object that holds all the data that need to be passed to the sp</param>
         /// <param name="ignore_user">If the sp don't return a user, but the type has a User property set as true</param>
         /// <returns></returns>
-        protected List<T> Run_Generic_SP(string sp_name, object dataHolder, bool ignore_user = false)
+        protected List<T> Run_Generic_SP(string sp_name, object dataHolder, NpgsqlConnection conn, bool ignore_user = false)
         {
             List<T> result = new List<T>();//Create a list of object from type T
             NpgsqlParameter[] param = null;
-            NpgsqlConnection conn = null;
 
-            try
+            NpgsqlCommand command = new NpgsqlCommand(sp_name, conn);
+            command.CommandType = System.Data.CommandType.StoredProcedure;
+
+            param = GetParametersFromDataHolder(dataHolder);//Get array of NpgsqlParameter
+
+            command.Parameters.AddRange(param);//Add all the NpgsqlParameter to the command
+
+            var reader = command.ExecuteReader();
+            while (reader.Read())
             {
-                conn = DbConnectionPool.Instance.GetConnection();
+                T one_row = (T)GetParametersFromReader(reader, typeof(T), ignore_user);//Get one record from the DB
 
-                NpgsqlCommand command = new NpgsqlCommand(sp_name, conn);
-                command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                param = GetParametersFromDataHolder(dataHolder);//Get array of NpgsqlParameter
-
-                command.Parameters.AddRange(param);//Add all the NpgsqlParameter to the command
-
-                var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    T one_row = (T)GetParametersFromReader(reader, typeof(T), ignore_user);//Get one record from the DB
-
-                    result.Add(one_row);//Add the record to the list
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                string params_string = "";
-                foreach (var item in param)
-                {
-                    if (params_string != "")
-                        params_string += ", ";
-                    params_string += $"Name : {item.ParameterName} value: {item.Value}";
-                }
-                Console.WriteLine($"Function {sp_name} failed. parameters: {params_string}");
-            }
-            finally
-            {
-                DbConnectionPool.Instance.ReturnConnection(conn);
+                result.Add(one_row);//Add the record to the list
             }
 
             return result;
@@ -150,7 +128,7 @@ namespace DAL
                 switch (ex.SqlState)
                 {
                     case "23505":
-                        throw new RecordAlreadyExistsException(ex, ex.TableName,ex.Statement.ToString(),ex.ConstraintName);
+                        throw new RecordAlreadyExistsException(ex, ex.TableName, ex.Statement.ToString(), ex.ConstraintName);
                     default:
                         throw ex;
                 }

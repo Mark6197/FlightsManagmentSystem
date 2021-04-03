@@ -89,11 +89,11 @@ namespace DAL
 
             result = Execute(() =>
             {
-                List<Administrator> administrators=  Run_Generic_SP("sp_get_administrator_by_user_id", new { _user_id = user_id });
+                List<Administrator> administrators = Run_Generic_SP("sp_get_administrator_by_user_id", new { _user_id = user_id }, conn);
 
                 if (administrators.Count > 0)
                     result = administrators[0];
-                
+
                 return result;
             }, new { UserId = user_id }, conn, _logger);
 

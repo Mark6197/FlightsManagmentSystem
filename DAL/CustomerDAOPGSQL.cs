@@ -127,7 +127,7 @@ namespace DAL
 
             result = Execute(() =>
             {
-                List<Customer> customers = Run_Generic_SP("sp_get_customer_by_user_id", new { _user_id = user_id });
+                List<Customer> customers = Run_Generic_SP("sp_get_customer_by_user_id", new { _user_id = user_id }, conn);
 
                 if (customers.Count > 0)
                     result = customers[0];

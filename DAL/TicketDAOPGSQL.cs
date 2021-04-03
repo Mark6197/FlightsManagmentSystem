@@ -43,45 +43,7 @@ namespace DAL
 
             result = Execute(() =>
             {
-                //string procedure = "sp_get_ticket";
-
-                //NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
-                //command.Parameters.Add(new NpgsqlParameter("_id", id));
-                //command.CommandType = System.Data.CommandType.StoredProcedure;
-
-                //var reader = command.ExecuteReader();
-                //if (reader.Read())
-                //{
-                //    result = new Ticket
-                //    {
-                //        Id = (long)reader["ticket_id"],
-                //        Flight = new Flight
-                //        {
-                //            Id = (long)reader["flight_id"],
-                //            AirlineCompany = new AirlineCompany
-                //            {
-                //                Id = (long)reader["airline_company_id"],
-                //                Name = (string)reader["airline_company_name"],
-                //                CountryId = (int)reader["airline_company_country_id"]
-                //            },
-                //            OriginCountryId = (int)reader["origin_country_id"],
-                //            DestinationCountryId = (int)reader["destination_country_id"],
-                //            DepartureTime = (DateTime)reader["departure_time"],
-                //            LandingTime = (DateTime)reader["landing_time"],
-                //            RemainingTickets = (int)reader["remaining_tickets"]
-                //        },
-                //        Customer = new Customer
-                //        {
-                //            Id = (long)reader["customer_id"],
-                //            FirstName = (string)reader["first_name"],
-                //            LastName = (string)reader["last_name"],
-                //            Address = (string)reader["address"],
-                //            PhoneNumber = (string)reader["phone_number"],
-                //            CreditCardNumber = (string)reader["credit_card_number"]
-                //        }
-                //    };
-                //}
-                List<Ticket> tickets = Run_Generic_SP("sp_get_ticket", new { _id = id }, true);
+                List<Ticket> tickets = Run_Generic_SP("sp_get_ticket", new { _id = id }, conn, true);
                 if (tickets.Count > 0)
                     result = tickets[0];     
 

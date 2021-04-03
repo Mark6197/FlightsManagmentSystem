@@ -82,7 +82,7 @@ namespace DAL
 
                 result = Execute(() =>
                 {
-                    List<AirlineCompany> airlineCompanies = Run_Generic_SP("sp_get_airline_company_by_user_id", new { _user_id = user_id });
+                    List<AirlineCompany> airlineCompanies = Run_Generic_SP("sp_get_airline_company_by_user_id", new { _user_id = user_id }, conn);
 
                     if (airlineCompanies.Count > 0)
                         result = airlineCompanies[0];
