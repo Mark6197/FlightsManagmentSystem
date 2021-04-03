@@ -39,27 +39,25 @@ namespace BL.LoginService
 
             try
             {
-                List<User> users = _userDAO.Run_Generic_SP("sp_get_user_by_username_and_password", new { _username = userName, _password = password });
+                User user = _userDAO.GetUserByUserNameAndPassword(userName,password);
 
-                if (users.Count == 0)
+                if (user == null)
                     throw new WrongCredentialsException();
-
-                User user = users[0];
 
                 switch (user.UserRole)
                 {
                     case UserRoles.Administrator:
-                        Administrator administrator = _adminDAO.Run_Generic_SP("sp_get_administrator_by_user_id", new { _user_id = user.Id })[0];
+                        Administrator administrator = _adminDAO.GetAdministratorByUserId(user.Id);
                         token = new LoginToken<Administrator>(administrator);
                         facade = new LoggedInAdministratorFacade();
                         break;
                     case UserRoles.Airline_Company:
-                        AirlineCompany airlineCompany = _airlineDAO.Run_Generic_SP("sp_get_airline_company_by_user_id", new { _user_id = user.Id })[0];
+                        AirlineCompany airlineCompany = _airlineDAO.GetAirlineCompanyByUserId(user.Id);
                         token = new LoginToken<AirlineCompany>(airlineCompany);
                         facade = new LoggedInAirlineFacade();
                         break;
                     case UserRoles.Customer:
-                        Customer customer = _customerDAO.Run_Generic_SP("sp_get_customer_by_user_id", new { _user_id = user.Id })[0];
+                        Customer customer = _customerDAO.GetCustomerByUserId(user.Id);
                         token = new LoginToken<Customer>(customer);
                         facade = new LoggedInCustomerFacade();
                         break;

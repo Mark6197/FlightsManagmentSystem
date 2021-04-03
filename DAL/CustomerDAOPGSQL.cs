@@ -120,6 +120,24 @@ namespace DAL
             return result;
         }
 
+        public Customer GetCustomerByUserId(long user_id)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            Customer result = null;
+
+            result = Execute(() =>
+            {
+                List<Customer> customers = Run_Generic_SP("sp_get_customer_by_user_id", new { _user_id = user_id });
+
+                if (customers.Count > 0)
+                    result = customers[0];
+
+                return result;
+            }, new { UserId = user_id }, conn, _logger);
+
+            return result;
+        }
+
         public Customer GetCustomerByUsername(string username)
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();

@@ -88,7 +88,7 @@ namespace DAL
         /// <param name="dataHolder">Object that holds all the data that need to be passed to the sp</param>
         /// <param name="ignore_user">If the sp don't return a user, but the type has a User property set as true</param>
         /// <returns></returns>
-        public List<T> Run_Generic_SP(string sp_name, object dataHolder, bool ignore_user = false)
+        protected List<T> Run_Generic_SP(string sp_name, object dataHolder, bool ignore_user = false)
         {
             List<T> result = new List<T>();//Create a list of object from type T
             NpgsqlParameter[] param = null;

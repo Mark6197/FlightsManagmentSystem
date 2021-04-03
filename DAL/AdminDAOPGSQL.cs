@@ -82,6 +82,24 @@ namespace DAL
             return result;
         }
 
+        public Administrator GetAdministratorByUserId(long user_id)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            Administrator result = null;
+
+            result = Execute(() =>
+            {
+                List<Administrator> administrators=  Run_Generic_SP("sp_get_administrator_by_user_id", new { _user_id = user_id });
+
+                if (administrators.Count > 0)
+                    result = administrators[0];
+                
+                return result;
+            }, new { UserId = user_id }, conn, _logger);
+
+            return result;
+        }
+
         public override IList<Administrator> GetAll()
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();

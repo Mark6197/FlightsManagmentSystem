@@ -4,6 +4,7 @@ namespace Domain.Interfaces
 {
     public interface ICustomerDAO:IBasicDB<Customer>
     {
+        Customer GetCustomerByUserId(long user_id);
         Customer GetCustomerByUsername(string username);
     }
 }

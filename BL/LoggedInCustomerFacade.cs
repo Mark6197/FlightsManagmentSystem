@@ -58,16 +58,12 @@ namespace BL
 
             result = Execute(() =>
             {
-                var ticket = _ticketDAO.Run_Generic_SP("sp_get_ticket", new { _id = id }, true);
+                result = _ticketDAO.Get(id);
 
-                if (ticket.Count > 0)
-                {
-                    if (token.User != ticket[0].Customer)
-                        throw new WrongCustomerException($"Customer {token.User.User.UserName} not allowed to get details of ticket {ticket[0].Id} that belogns to customer with id {ticket[0].Customer.Id}");
+                if (result != null && token.User != result.Customer)
+                    throw new WrongCustomerException($"Customer {token.User.User.UserName} not allowed to get details of ticket {result.Id} that belogns to customer with id {result.Customer.Id}");
 
-                    return ticket[0];
-                }
-                return null;
+                return result;
             }, new { Token = token, Id = id }, _logger);
 
             return result;
