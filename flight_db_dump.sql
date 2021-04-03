@@ -119,16 +119,17 @@ $$;
 ALTER FUNCTION public.sp_add_flight(_airline_company_id bigint, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer) OWNER TO postgres;
 
 --
--- Name: sp_add_flight_history(bigint, bigint, integer, integer, timestamp without time zone, timestamp without time zone, integer); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: sp_add_flight_history(bigint, bigint, text, integer, integer, timestamp without time zone, timestamp without time zone, integer, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_add_flight_history(_original_id bigint, _airline_company_id bigint, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer) RETURNS integer
+CREATE FUNCTION public.sp_add_flight_history(_original_id bigint, _airline_company_id bigint, _airline_company_name text, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer, _flight_status integer) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE
-                record_id integer;
+                record_id bigint;
             BEGIN
-                INSERT INTO flights_history(flight_original_id, airline_company_id, origin_country_id, destination_country_id, departure_time, landing_time, remaining_tickets) values (_original_id,_airline_company_id, _origin_country_id, _destination_country_id, _departure_time, _landing_time, _remaining_tickets)
+                INSERT INTO flights_history(flight_original_id, airline_company_id, airline_company_name, origin_country_id, destination_country_id, departure_time, landing_time, remaining_tickets, flight_status) 
+				values (_original_id,_airline_company_id, _airline_company_name, _origin_country_id, _destination_country_id, _departure_time, _landing_time, _remaining_tickets,_flight_status)
                     returning id into record_id;
 
                 return record_id;
@@ -136,7 +137,7 @@ DECLARE
 $$;
 
 
-ALTER FUNCTION public.sp_add_flight_history(_original_id bigint, _airline_company_id bigint, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer) OWNER TO postgres;
+ALTER FUNCTION public.sp_add_flight_history(_original_id bigint, _airline_company_id bigint, _airline_company_name text, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer, _flight_status integer) OWNER TO postgres;
 
 --
 -- Name: sp_add_ticket(bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
@@ -159,16 +160,16 @@ $$;
 ALTER FUNCTION public.sp_add_ticket(_flight_id bigint, _customer_id bigint) OWNER TO postgres;
 
 --
--- Name: sp_add_ticket_history(bigint, bigint, bigint); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: sp_add_ticket_history(bigint, bigint, bigint, text, text, integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_add_ticket_history(_original_id bigint, _flight_id bigint, _customer_id bigint) RETURNS integer
+CREATE FUNCTION public.sp_add_ticket_history(_original_id bigint, _flight_id bigint, _customer_id bigint, _customer_full_name text, _customer_username text, _ticket_status integer) RETURNS bigint
     LANGUAGE plpgsql
     AS $$
 DECLARE
-                record_id integer;
+                record_id bigint;
             BEGIN
-                INSERT INTO tickets_history(original_ticket_id, flight_id, customer_id) values (_original_id, _flight_id, _customer_id)
+                INSERT INTO tickets_history(original_ticket_id, flight_id, customer_id, customer_full_name, customer_username, ticket_status) values (_original_id, _flight_id, _customer_id, _customer_full_name, _customer_username, _ticket_status)
                     returning id into record_id;
 
                 return record_id;
@@ -176,7 +177,7 @@ DECLARE
 $$;
 
 
-ALTER FUNCTION public.sp_add_ticket_history(_original_id bigint, _flight_id bigint, _customer_id bigint) OWNER TO postgres;
+ALTER FUNCTION public.sp_add_ticket_history(_original_id bigint, _flight_id bigint, _customer_id bigint, _customer_full_name text, _customer_username text, _ticket_status integer) OWNER TO postgres;
 
 --
 -- Name: sp_add_user(text, text, text, integer); Type: FUNCTION; Schema: public; Owner: postgres
@@ -214,6 +215,9 @@ TRUNCATE TABLE customers RESTART IDENTITY CASCADE;
 TRUNCATE TABLE administrators RESTART IDENTITY CASCADE;
 TRUNCATE TABLE users RESTART IDENTITY CASCADE;
 TRUNCATE TABLE countries RESTART IDENTITY CASCADE;
+TRUNCATE TABLE tickets_history RESTART IDENTITY CASCADE;
+TRUNCATE TABLE flights_history RESTART IDENTITY CASCADE;
+
 END;
 $$;
 
@@ -239,76 +243,76 @@ CREATE FUNCTION public.sp_get_administrator(_id integer) RETURNS TABLE(admin_id 
 ALTER FUNCTION public.sp_get_administrator(_id integer) OWNER TO postgres;
 
 --
--- Name: sp_get_administrator_by_username_and_password(text, text); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: sp_get_administrator_by_user_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_get_administrator_by_username_and_password(_username text, _password text) RETURNS TABLE(admin_id integer, first_name text, last_name text, level integer, user_id bigint, username text, password text, email text, user_role_id integer)
+CREATE FUNCTION public.sp_get_administrator_by_user_id(_user_id bigint) RETURNS TABLE(admin_id integer, first_name text, last_name text, level integer, user_id bigint, username text, password text, email text, user_role_id integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 RETURN QUERY
                     select a.id,a.first_name,a.last_name,a.level, u.id, u.username, u.password, u.email, u.user_role  from administrators a
                     join users u on u.id = a.user_id
-                    where u.username =_username and u.password=_password;
+                    where u.id =_user_id;
             END;
-    $$;
+$$;
 
 
-ALTER FUNCTION public.sp_get_administrator_by_username_and_password(_username text, _password text) OWNER TO postgres;
+ALTER FUNCTION public.sp_get_administrator_by_user_id(_user_id bigint) OWNER TO postgres;
 
 --
 -- Name: sp_get_airline_company(bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_get_airline_company(_id bigint) RETURNS TABLE(airline_company_id bigint, name text, country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
+CREATE FUNCTION public.sp_get_airline_company(_id bigint) RETURNS TABLE(airline_company_id bigint, airline_company_name text, airline_company_country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 RETURN QUERY
                     select a.id, a.name, a.country_id, u.id, u.username, u.password, u.email, u.user_role  from airline_companies a
                     join users u on u.id = a.user_id
                     where a.id =_id;
             END;
-    $$;
+$$;
 
 
 ALTER FUNCTION public.sp_get_airline_company(_id bigint) OWNER TO postgres;
 
 --
+-- Name: sp_get_airline_company_by_user_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_airline_company_by_user_id(_user_id bigint) RETURNS TABLE(airline_company_id bigint, airline_company_name text, airline_company_country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+                RETURN QUERY
+                    select a.id, a.name, a.country_id, u.id, u.username, u.password, u.email, u.user_role  from airline_companies a
+                    join users u on u.id = a.user_id
+                    where u.id =_user_id;
+            END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_airline_company_by_user_id(_user_id bigint) OWNER TO postgres;
+
+--
 -- Name: sp_get_airline_company_by_username(text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_get_airline_company_by_username(_username text) RETURNS TABLE(airline_company_id bigint, name text, country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
+CREATE FUNCTION public.sp_get_airline_company_by_username(_username text) RETURNS TABLE(airline_company_id bigint, airline_company_name text, airline_company_country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 RETURN QUERY
                     select a.id, a.name, a.country_id, u.id, u.username, u.password, u.email, u.user_role  from airline_companies a
                     join users u on u.id = a.user_id
                     where u.username =_username;
             END;
-    $$;
+$$;
 
 
 ALTER FUNCTION public.sp_get_airline_company_by_username(_username text) OWNER TO postgres;
-
---
--- Name: sp_get_airline_company_by_username_and_password(text, text); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.sp_get_airline_company_by_username_and_password(_username text, _password text) RETURNS TABLE(airline_company_id bigint, name text, country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
-    LANGUAGE plpgsql
-    AS $$
-            BEGIN
-                RETURN QUERY
-                    select a.id, a.name, a.country_id, u.id, u.username, u.password, u.email, u.user_role  from airline_companies a
-                    join users u on u.id = a.user_id
-                    where u.username =_username and u.password=_password;
-            END;
-    $$;
-
-
-ALTER FUNCTION public.sp_get_airline_company_by_username_and_password(_username text, _password text) OWNER TO postgres;
 
 --
 -- Name: sp_get_all_administrators(); Type: FUNCTION; Schema: public; Owner: postgres
@@ -331,15 +335,15 @@ ALTER FUNCTION public.sp_get_all_administrators() OWNER TO postgres;
 -- Name: sp_get_all_airline_companies(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_get_all_airline_companies() RETURNS TABLE(airline_company_id bigint, name text, country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
+CREATE FUNCTION public.sp_get_all_airline_companies() RETURNS TABLE(airline_company_id bigint, airline_company_name text, airline_company_country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 RETURN QUERY
                     select a.id, a.name, a.country_id, u.id, u.username, u.password, u.email, u.user_role  from airline_companies a
                     join users u on u.id = a.user_id;
                 END;
-    $$;
+$$;
 
 
 ALTER FUNCTION public.sp_get_all_airline_companies() OWNER TO postgres;
@@ -348,16 +352,16 @@ ALTER FUNCTION public.sp_get_all_airline_companies() OWNER TO postgres;
 -- Name: sp_get_all_airline_companies_by_country(integer); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_get_all_airline_companies_by_country(_country_id integer) RETURNS TABLE(airline_company_id bigint, name text, country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
+CREATE FUNCTION public.sp_get_all_airline_companies_by_country(_country_id integer) RETURNS TABLE(airline_company_id bigint, airline_company_name text, airline_company_country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 RETURN QUERY
                     select a.id, a.name, a.country_id, u.id, u.username, u.password, u.email, u.user_role  from airline_companies a
                     join users u on u.id = a.user_id
                     where a.country_id=_country_id;
                 END;
-    $$;
+$$;
 
 
 ALTER FUNCTION public.sp_get_all_airline_companies_by_country(_country_id integer) OWNER TO postgres;
@@ -433,27 +437,6 @@ CREATE FUNCTION public.sp_get_all_tickets() RETURNS TABLE(ticket_id bigint, flig
 ALTER FUNCTION public.sp_get_all_tickets() OWNER TO postgres;
 
 --
--- Name: sp_get_all_tickets_by_customer(bigint); Type: FUNCTION; Schema: public; Owner: postgres
---
-
-CREATE FUNCTION public.sp_get_all_tickets_by_customer(_customer_id bigint) RETURNS TABLE(ticket_id bigint, flight_id bigint, airline_company_id bigint, airline_company_name text, airline_company_country_id integer, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer, customer_id bigint, first_name text, last_name text, address text, phone_number text, credit_card_number text)
-    LANGUAGE plpgsql
-    AS $$
-BEGIN
-                RETURN QUERY
-                      select t.id, f.id, a.id, a.name, a.country_id, f.origin_country_id, f.destination_country_id, f.departure_time, f.landing_time, f.remaining_tickets,
-                           c.id, c.first_name, c.last_name, c.address, c.phone_number, c.credit_card_number from tickets t
-                    join flights f on f.id = t.flight_id
-                    join airline_companies a on a.id = f.airline_company_id
-                    join customers c on c.id = t.customer_id
-					where t.customer_id=_customer_id;
-                END;
-$$;
-
-
-ALTER FUNCTION public.sp_get_all_tickets_by_customer(_customer_id bigint) OWNER TO postgres;
-
---
 -- Name: sp_get_all_users(); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -503,6 +486,24 @@ CREATE FUNCTION public.sp_get_customer(_id bigint) RETURNS TABLE(customer_id big
 
 
 ALTER FUNCTION public.sp_get_customer(_id bigint) OWNER TO postgres;
+
+--
+-- Name: sp_get_customer_by_user_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_customer_by_user_id(_user_id bigint) RETURNS TABLE(customer_id bigint, first_name text, last_name text, address text, phone_number text, credit_card_number text, user_id bigint, username text, password text, email text, user_role_id integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+                RETURN QUERY
+                    select a.id, a.first_name, a.last_name, a.address, a.phone_number, a.credit_card_number, u.id, u.username, u.password, u.email, u.user_role  from customers a
+                    join users u on u.id = a.user_id
+                    where u.id =_user_id;
+            END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_customer_by_user_id(_user_id bigint) OWNER TO postgres;
 
 --
 -- Name: sp_get_customer_by_username(text); Type: FUNCTION; Schema: public; Owner: postgres
@@ -562,19 +563,18 @@ ALTER FUNCTION public.sp_get_flight(_id bigint) OWNER TO postgres;
 -- Name: sp_get_flight_history_by_original_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_get_flight_history_by_original_id(_id bigint) RETURNS TABLE(id bigint, flight_original_id bigint, airline_company_id bigint, airline_company_name text, airline_company_country_id integer, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer)
+CREATE FUNCTION public.sp_get_flight_history_by_original_id(_original_id bigint) RETURNS TABLE(id bigint, flight_original_id bigint, airline_company_id bigint, airline_company_name text, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer, flight_status integer)
     LANGUAGE plpgsql
     AS $$
 BEGIN
-                RETURN QUERY
-                    select f.id, f.flight_original_id, a.id,a.name,a.country_id, f.origin_country_id, f.destination_country_id, f.departure_time, f.landing_time, f.remaining_tickets  from flights_history f
-                    join airline_companies a on a.id = f.airline_company_id
-                    where f.flight_original_id =_id;
+            RETURN QUERY
+            	select * from flights_history f
+                where f.flight_original_id =_original_id;
             END;
 $$;
 
 
-ALTER FUNCTION public.sp_get_flight_history_by_original_id(_id bigint) OWNER TO postgres;
+ALTER FUNCTION public.sp_get_flight_history_by_original_id(_original_id bigint) OWNER TO postgres;
 
 --
 -- Name: sp_get_flights_by_airline_company(bigint); Type: FUNCTION; Schema: public; Owner: postgres
@@ -689,22 +689,29 @@ ALTER FUNCTION public.sp_get_flights_by_origin_country(_origin_country_id intege
 -- Name: sp_get_flights_with_tickets_that_landed(bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_get_flights_with_tickets_that_landed(_seconds bigint) RETURNS TABLE(flight_id bigint, airline_company_id bigint, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer, ticket_id bigint, customer_id bigint)
+CREATE FUNCTION public.sp_get_flights_with_tickets_that_landed(_seconds bigint) RETURNS TABLE(flight_id bigint, airline_company_id bigint, airline_company_name text, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer, ticket_id bigint, customer_id bigint, first_name text, last_name text, username text)
     LANGUAGE plpgsql
     AS $$
 BEGIN
 return query
 	(SELECT f.id,
 	 		f.airline_company_id,
+	 		a.name,
 	 		f.origin_country_id,
 	 		f.destination_country_id,
 	 		f.departure_time,
 	 		f.landing_time,
 	 		f.remaining_tickets,
 	 		t.id,
-	 		t.customer_id
+	 		t.customer_id,
+	 		c.first_name,
+	 		c.last_name,
+	 		u.username
 	 FROM flights f
-	left JOIN tickets t on f.id = t.flight_id
+	 JOIN airline_companies a on f.airline_company_id=a.id
+	 left JOIN tickets t on f.id = t.flight_id
+	 JOIN customers c on t.customer_id=c.id
+	 JOIN users u on c.user_id=u.id
 	WHERE (SELECT EXTRACT(EPOCH FROM current_timestamp::timestamp without time zone) - EXTRACT(EPOCH FROM f.landing_time))>_seconds);
 END;
 $$;
@@ -734,25 +741,87 @@ CREATE FUNCTION public.sp_get_ticket(_id bigint) RETURNS TABLE(ticket_id bigint,
 ALTER FUNCTION public.sp_get_ticket(_id bigint) OWNER TO postgres;
 
 --
+-- Name: sp_get_ticket_history_by_original_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_ticket_history_by_original_id(_original_id bigint) RETURNS TABLE(id bigint, ticket_original_id bigint, flight_id bigint, customer_id bigint, customer_full_name text, customer_username text, ticket_status integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+            RETURN QUERY
+            	select * from tickets_history t
+                where t.original_ticket_id =_original_id;
+            END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_ticket_history_by_original_id(_original_id bigint) OWNER TO postgres;
+
+--
 -- Name: sp_get_tickets_by_airline_company(bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE FUNCTION public.sp_get_tickets_by_airline_company(_airline_company_id bigint) RETURNS TABLE(ticket_id bigint, flight_id bigint, airline_company_id bigint, airline_company_name text, airline_company_country_id integer, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer, customer_id bigint, first_name text, last_name text, address text, phone_number text, credit_card_number text)
+CREATE FUNCTION public.sp_get_tickets_by_airline_company(_airline_company_id bigint) RETURNS TABLE(ticket_id bigint, flight_id bigint, airline_company_id bigint, airline_company_name text, airline_company_country_id integer, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer, customer_id bigint, first_name text, last_name text, address text, phone_number text, credit_card_number text, user_id bigint, username text, password text, email text, user_role_id integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 RETURN QUERY
                     select t.id, f.id, a.id, a.name, a.country_id, f.origin_country_id, f.destination_country_id, f.departure_time, f.landing_time, f.remaining_tickets,
-                           c.id, c.first_name, c.last_name, c.address, c.phone_number, c.credit_card_number from tickets t
+                           c.id, c.first_name, c.last_name, c.address, c.phone_number, c.credit_card_number, c.user_id, u.username, u.password, u.email, u.user_role from tickets t
                     join flights f on f.id = t.flight_id
                     join airline_companies a on a.id = f.airline_company_id
                     join customers c on c.id = t.customer_id
+					join users u on u.id = c.user_id
                     where a.id =_airline_company_id;
             END;
-    $$;
+$$;
 
 
 ALTER FUNCTION public.sp_get_tickets_by_airline_company(_airline_company_id bigint) OWNER TO postgres;
+
+--
+-- Name: sp_get_tickets_by_customer(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_tickets_by_customer(_customer_id bigint) RETURNS TABLE(ticket_id bigint, flight_id bigint, airline_company_id bigint, airline_company_name text, airline_company_country_id integer, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer, customer_id bigint, first_name text, last_name text, address text, phone_number text, credit_card_number text, user_id bigint, username text, password text, email text, user_role_id integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+                RETURN QUERY
+                      select t.id, f.id, a.id, a.name, a.country_id, f.origin_country_id, f.destination_country_id, f.departure_time, f.landing_time, f.remaining_tickets,
+                           c.id, c.first_name, c.last_name, c.address, c.phone_number, c.credit_card_number, c.user_id, u.username, u.password, u.email, u.user_role  from tickets t
+                    join flights f on f.id = t.flight_id
+                    join airline_companies a on a.id = f.airline_company_id
+                    join customers c on c.id = t.customer_id
+					join users u on u.id = c.user_id
+					where t.customer_id=_customer_id;
+                END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_tickets_by_customer(_customer_id bigint) OWNER TO postgres;
+
+--
+-- Name: sp_get_tickets_by_flight(bigint); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_tickets_by_flight(_flight_id bigint) RETURNS TABLE(ticket_id bigint, flight_id bigint, airline_company_id bigint, airline_company_name text, airline_company_country_id integer, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer, customer_id bigint, first_name text, last_name text, address text, phone_number text, credit_card_number text, user_id bigint, username text, password text, email text, user_role_id integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+                RETURN QUERY
+                      select t.id, f.id, a.id, a.name, a.country_id, f.origin_country_id, f.destination_country_id, f.departure_time, f.landing_time, f.remaining_tickets,
+                           c.id, c.first_name, c.last_name, c.address, c.phone_number, c.credit_card_number, c.user_id, u.username, u.password, u.email, u.user_role  from tickets t
+                    join flights f on f.id = t.flight_id
+                    join airline_companies a on a.id = f.airline_company_id
+                    join customers c on c.id = t.customer_id
+					join users u on u.id = c.user_id
+					where t.flight_id=_flight_id;
+                END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_tickets_by_flight(_flight_id bigint) OWNER TO postgres;
 
 --
 -- Name: sp_get_user(integer); Type: FUNCTION; Schema: public; Owner: postgres
@@ -770,6 +839,23 @@ CREATE FUNCTION public.sp_get_user(_id integer) RETURNS TABLE(id bigint, usernam
 
 
 ALTER FUNCTION public.sp_get_user(_id integer) OWNER TO postgres;
+
+--
+-- Name: sp_get_user_by_username_and_password(text, text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_user_by_username_and_password(_username text, _password text) RETURNS TABLE(user_id bigint, username text, password text, email text, user_role_id integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+                RETURN QUERY
+                    select * from users u
+                    where u.username =_username and u.password=_password;
+            END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_user_by_username_and_password(_username text, _password text) OWNER TO postgres;
 
 --
 -- Name: sp_remove_administrator(integer); Type: PROCEDURE; Schema: public; Owner: postgres
@@ -1144,6 +1230,40 @@ ALTER SEQUENCE public.countries_id_seq OWNED BY public.countries.id;
 
 
 --
+-- Name: flights_history; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.flights_history (
+    id bigint NOT NULL,
+    flight_original_id bigint NOT NULL,
+    airline_company_id bigint NOT NULL,
+    airline_company_name text NOT NULL,
+    origin_country_id integer NOT NULL,
+    destination_country_id integer NOT NULL,
+    departure_time timestamp without time zone NOT NULL,
+    landing_time timestamp without time zone NOT NULL,
+    remaining_tickets integer NOT NULL,
+    flight_status integer NOT NULL
+);
+
+
+ALTER TABLE public.flights_history OWNER TO postgres;
+
+--
+-- Name: flight_history_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+ALTER TABLE public.flights_history ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY (
+    SEQUENCE NAME public.flight_history_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+);
+
+
+--
 -- Name: flights; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -1159,45 +1279,6 @@ CREATE TABLE public.flights (
 
 
 ALTER TABLE public.flights OWNER TO postgres;
-
---
--- Name: flights_history; Type: TABLE; Schema: public; Owner: postgres
---
-
-CREATE TABLE public.flights_history (
-    id bigint NOT NULL,
-    flight_original_id bigint NOT NULL,
-    airline_company_id bigint NOT NULL,
-    origin_country_id integer NOT NULL,
-    destination_country_id integer,
-    departure_time timestamp without time zone NOT NULL,
-    landing_time timestamp without time zone NOT NULL,
-    remaining_tickets integer NOT NULL
-);
-
-
-ALTER TABLE public.flights_history OWNER TO postgres;
-
---
--- Name: flights_history_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
---
-
-CREATE SEQUENCE public.flights_history_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
-ALTER TABLE public.flights_history_id_seq OWNER TO postgres;
-
---
--- Name: flights_history_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
---
-
-ALTER SEQUENCE public.flights_history_id_seq OWNED BY public.flights_history.id;
-
 
 --
 -- Name: flights_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -1241,7 +1322,10 @@ CREATE TABLE public.tickets_history (
     id bigint NOT NULL,
     original_ticket_id bigint NOT NULL,
     flight_id bigint NOT NULL,
-    customer_id bigint NOT NULL
+    customer_id bigint NOT NULL,
+    customer_full_name text,
+    customer_username text,
+    ticket_status integer
 );
 
 
@@ -1395,13 +1479,6 @@ ALTER TABLE ONLY public.flights ALTER COLUMN id SET DEFAULT nextval('public.flig
 
 
 --
--- Name: flights_history id; Type: DEFAULT; Schema: public; Owner: postgres
---
-
-ALTER TABLE ONLY public.flights_history ALTER COLUMN id SET DEFAULT nextval('public.flights_history_id_seq'::regclass);
-
-
---
 -- Name: tickets id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -1442,7 +1519,6 @@ COPY public.administrators (id, first_name, last_name, level, user_id) FROM stdi
 --
 
 COPY public.airline_companies (id, name, country_id, user_id) FROM stdin;
-1	El-al	1	1
 \.
 
 
@@ -1451,7 +1527,6 @@ COPY public.airline_companies (id, name, country_id, user_id) FROM stdin;
 --
 
 COPY public.countries (id, name) FROM stdin;
-1	Israel
 \.
 
 
@@ -1460,7 +1535,6 @@ COPY public.countries (id, name) FROM stdin;
 --
 
 COPY public.customers (id, first_name, last_name, address, phone_number, credit_card_number, user_id) FROM stdin;
-3	cust	aaa	ashdod	0501234567	4580421548423354	4
 \.
 
 
@@ -1469,7 +1543,6 @@ COPY public.customers (id, first_name, last_name, address, phone_number, credit_
 --
 
 COPY public.flights (id, airline_company_id, origin_country_id, destination_country_id, departure_time, landing_time, remaining_tickets) FROM stdin;
-1	1	1	1	2021-05-20 21:00:00	2021-05-21 00:30:00	17
 \.
 
 
@@ -1477,7 +1550,7 @@ COPY public.flights (id, airline_company_id, origin_country_id, destination_coun
 -- Data for Name: flights_history; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.flights_history (id, flight_original_id, airline_company_id, origin_country_id, destination_country_id, departure_time, landing_time, remaining_tickets) FROM stdin;
+COPY public.flights_history (id, flight_original_id, airline_company_id, airline_company_name, origin_country_id, destination_country_id, departure_time, landing_time, remaining_tickets, flight_status) FROM stdin;
 \.
 
 
@@ -1486,7 +1559,6 @@ COPY public.flights_history (id, flight_original_id, airline_company_id, origin_
 --
 
 COPY public.tickets (id, flight_id, customer_id) FROM stdin;
-2	1	3
 \.
 
 
@@ -1494,7 +1566,7 @@ COPY public.tickets (id, flight_id, customer_id) FROM stdin;
 -- Data for Name: tickets_history; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.tickets_history (id, original_ticket_id, flight_id, customer_id) FROM stdin;
+COPY public.tickets_history (id, original_ticket_id, flight_id, customer_id, customer_full_name, customer_username, ticket_status) FROM stdin;
 \.
 
 
@@ -1514,8 +1586,6 @@ COPY public.user_roles (id, role_name) FROM stdin;
 --
 
 COPY public.users (id, username, password, email, user_role) FROM stdin;
-1	Elal	elal123	elal@gmail.com	3
-4	customerA	AAAAAAA	A_customer@gmail.com	2
 \.
 
 
@@ -1530,49 +1600,49 @@ SELECT pg_catalog.setval('public.administrators_id_seq', 1, false);
 -- Name: airline_companies_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.airline_companies_id_seq', 1, true);
+SELECT pg_catalog.setval('public.airline_companies_id_seq', 1, false);
 
 
 --
 -- Name: costumers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.costumers_id_seq', 3, true);
+SELECT pg_catalog.setval('public.costumers_id_seq', 1, false);
 
 
 --
 -- Name: countries_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.countries_id_seq', 1, true);
+SELECT pg_catalog.setval('public.countries_id_seq', 1, false);
 
 
 --
--- Name: flights_history_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: flight_history_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.flights_history_id_seq', 19, true);
+SELECT pg_catalog.setval('public.flight_history_id_seq', 1, false);
 
 
 --
 -- Name: flights_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.flights_id_seq', 1, true);
+SELECT pg_catalog.setval('public.flights_id_seq', 1, false);
 
 
 --
 -- Name: tickets_history_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tickets_history_id_seq', 6, true);
+SELECT pg_catalog.setval('public.tickets_history_id_seq', 1, false);
 
 
 --
 -- Name: tickets_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.tickets_id_seq', 2, true);
+SELECT pg_catalog.setval('public.tickets_id_seq', 1, false);
 
 
 --
@@ -1586,7 +1656,7 @@ SELECT pg_catalog.setval('public.user_roles_id_seq', 3, true);
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 4, true);
+SELECT pg_catalog.setval('public.users_id_seq', 1, false);
 
 
 --
@@ -1619,6 +1689,14 @@ ALTER TABLE ONLY public.customers
 
 ALTER TABLE ONLY public.countries
     ADD CONSTRAINT countries_pk PRIMARY KEY (id);
+
+
+--
+-- Name: flights_history flight_history_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.flights_history
+    ADD CONSTRAINT flight_history_pkey PRIMARY KEY (id);
 
 
 --
@@ -1711,10 +1789,10 @@ CREATE UNIQUE INDEX countries_name_uindex ON public.countries USING btree (name)
 
 
 --
--- Name: flights_history_flight_original_id_uindex; Type: INDEX; Schema: public; Owner: postgres
+-- Name: flight_original_id_uindex; Type: INDEX; Schema: public; Owner: postgres
 --
 
-CREATE UNIQUE INDEX flights_history_flight_original_id_uindex ON public.flights_history USING btree (flight_original_id);
+CREATE UNIQUE INDEX flight_original_id_uindex ON public.flights_history USING btree (flight_original_id);
 
 
 --
