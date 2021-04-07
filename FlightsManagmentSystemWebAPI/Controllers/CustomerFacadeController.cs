@@ -1,62 +1,62 @@
 ﻿using BL;
+using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
+using DAL.Exceptions;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace FlightsManagmentSystemWebAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomerFacadeController : ControllerBase
+    [Authorize(Roles = "Customer")]
+    public class CustomerFacadeController : LoggedInControllerBase<Customer>
     {
-        private readonly IFlightCenterSystem _flightCenterSystem = FlightCenterSystem.GetInstance();// I am not using the interface because i want access to the private login service. might want to reconsider 
+        private readonly IFlightCenterSystem _flightCenterSystem = FlightCenterSystem.GetInstance(); 
         private readonly ILoggedInCustomerFacade _loggedInCustomerFacade;
         private readonly LinkGenerator _linkGenerator;
+        private readonly ILogger<CustomerFacadeController> _logger;
 
-        public CustomerFacadeController(LinkGenerator linkGenerator)
+        public CustomerFacadeController(LinkGenerator linkGenerator, ILogger<CustomerFacadeController> logger)
         {
             _loggedInCustomerFacade = _flightCenterSystem.GetFacade<LoggedInCustomerFacade>();
             _linkGenerator = linkGenerator;
+            _logger = logger;
         }
 
-        private LoginToken<Customer> getLoginToken()
-        {
-            string user_name = "customerA";
-            string password = "AAAAAAA";
-            bool is_success = _flightCenterSystem.TryLogin(user_name, password, out ILoginToken token, out FacadeBase facade);
 
-            if (is_success)
-            {
-                LoginToken<Customer> customer_token = token as LoginToken<Customer>;
-                return customer_token;
-            }
-
-            return null;
-        }
-
-        [HttpGet("GetAllMyFlights")]
+        [HttpGet(nameof(GetAllMyFlights))]
         public ActionResult<Flight> GetAllMyFlights()
         {
-            LoginToken<Customer> customer_token = getLoginToken();
+                _logger.LogInformation("TEST");
+                //_logger.LogDebug($"Enter {MethodBase.GetCurrentMethod().Name}");
+                LoginToken<Customer> customer_token = DesirializeToken();
 
-            IList<Flight> flights = _loggedInCustomerFacade.GetAllMyFlights(customer_token);
-            if (flights.Count == 0)
-                return NoContent();
+                IList<Flight> flights = _loggedInCustomerFacade.GetAllMyFlights(customer_token);
+                if (flights.Count == 0)
+                    return NoContent();
 
-            return Ok(flights);
+                return Ok(flights);
+            
+           
         }
 
         [HttpGet(nameof(GetAllMyTickets))]
         public IActionResult GetAllMyTickets()
         {
-            LoginToken<Customer> customer_token = getLoginToken();
+            LoginToken<Customer> customer_token = DesirializeToken();
 
             IList<Ticket> tickets = _loggedInCustomerFacade.GetAllMyTickets(customer_token);
             if (tickets.Count == 0)
@@ -68,7 +68,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         [HttpGet(nameof(GetTicketById))]
         public IActionResult GetTicketById(long id)
         {
-            LoginToken<Customer> customer_token = getLoginToken();
+            LoginToken<Customer> customer_token = DesirializeToken();
             Ticket ticket = null;
             try
             {
@@ -77,18 +77,18 @@ namespace FlightsManagmentSystemWebAPI.Controllers
                     return NotFound();
 
             }
-            catch (Exception)
+            catch (WrongCustomerException)
             {
-                throw;
+                return Unauthorized();
             }
 
             return Ok(ticket);
         }
 
-        [HttpPost("PurchaseTicket")]
-        public IActionResult PurchaseTicket(Flight flight)
+        [HttpPost(nameof(PurchaseTicket))]
+        public ActionResult<Ticket> PurchaseTicket(Flight flight)
         {
-            LoginToken<Customer> customer_token = getLoginToken();
+            LoginToken<Customer> customer_token = DesirializeToken();
             Ticket ticket = null;
             string uri = null;
             try
@@ -97,28 +97,28 @@ namespace FlightsManagmentSystemWebAPI.Controllers
                 if (ticket == null)
                     return StatusCode(StatusCodes.Status410Gone);
 
-                uri = _linkGenerator.GetPathByAction(nameof(GetTicketById),"customerfacade", new { id = ticket.Id });
+                uri = _linkGenerator.GetPathByAction(nameof(GetTicketById), "customerfacade", new { id = ticket.Id });
 
             }
-            catch (Exception)
+            catch (RecordAlreadyExistsException)
             {
-                throw;
+                return Conflict();
             }
 
             return Created(uri, ticket);
         }
 
-        [HttpDelete("CancelTicket")]
+        [HttpDelete(nameof(CancelTicket))]
         public IActionResult CancelTicket(Ticket ticket)
         {
-            LoginToken<Customer> customer_token = getLoginToken();
+            LoginToken<Customer> customer_token = DesirializeToken();
             try
             {
                 _loggedInCustomerFacade.CancelTicket(customer_token, ticket);
             }
-            catch (Exception)
+            catch (WrongCustomerException)
             {
-                throw;
+                return Unauthorized();
             }
 
             return NoContent();

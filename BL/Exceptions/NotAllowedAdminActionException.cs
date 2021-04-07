@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace BL.Exceptions
 {
     [Serializable]
-    class NotAllowedAirlineActionException : Exception
+    public class NotAllowedAirlineActionException : Exception
     {
         public NotAllowedAirlineActionException()
         {

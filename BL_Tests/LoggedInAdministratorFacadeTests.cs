@@ -214,22 +214,6 @@ namespace BL_Tests
         }
 
         [TestMethod]
-        public void Create_Two_Administrators_With_Same_User_Id()
-        {
-            Execute_Test(() =>
-            {
-                Administrator demi_administrator = TestData.Get_Administrators_Data()[0];
-                Administrator demi_administrator_with_same_user_id = TestData.Get_Administrators_Data()[1];
-                demi_administrator_with_same_user_id.User.Id = 1;
-
-                int admin_id = administrator_facade.CreateNewAdmin(administrator_token, demi_administrator);
-                Assert.AreEqual(admin_id, 1);
-
-                Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_facade.CreateNewAdmin(administrator_token, demi_administrator_with_same_user_id));
-            });
-        }
-
-        [TestMethod]
         public void Create_And_Get_New_Country()
         {
             Execute_Test(() =>
@@ -338,22 +322,6 @@ namespace BL_Tests
                 Customer customer_from_db = administrator_facade.GetCustomerById(administrator_token, 1);
 
                 Assert.IsNull(customer_from_db);
-            });
-        }
-
-        [TestMethod]
-        public void Create_Two_Customers_With_Same_User_Id()
-        {
-            Execute_Test(() =>
-            {
-                Customer demi_customer = TestData.Get_Customers_Data()[0];
-                Customer demi_customer_with_same_user_id = TestData.Get_Customers_Data()[1];
-                demi_customer_with_same_user_id.User.Id = 1;
-
-                long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
-                Assert.AreEqual(customer_id, 1);
-
-                Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_facade.CreateNewCustomer(administrator_token, demi_customer_with_same_user_id));
             });
         }
 

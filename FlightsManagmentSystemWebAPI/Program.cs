@@ -21,6 +21,11 @@ namespace FlightsManagmentSystemWebAPI
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                })
+                .ConfigureLogging(builder =>
+                {
+                    builder.SetMinimumLevel(LogLevel.Debug);
+                    builder.AddLog4Net("Log4Net.config");
                 });
     }
 }

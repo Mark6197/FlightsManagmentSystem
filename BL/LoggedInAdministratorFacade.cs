@@ -25,13 +25,10 @@ namespace BL
             {
                 if (token.User.Level == AdminLevel.Junior_Admin || token.User.Level == AdminLevel.Mid_Level_Admin)
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to add other admin. Admin's level is {token.User.Level}");
-         
-                if (token.User.Level != AdminLevel.Main_Admin && (admin.Level == AdminLevel.Main_Admin|| admin.Level == AdminLevel.Senior_Admin))
+
+                if (token.User.Level != AdminLevel.Main_Admin && (admin.Level == AdminLevel.Main_Admin || admin.Level == AdminLevel.Senior_Admin))
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to add new admin at level {admin.Level}. Admin's level is {token.User.Level}");
-                
-                //Check if user role of user is indeed admin?
-                if (admin.User.Id != 0)
-                    throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} (level: {token.User.Level}) tried to add the following admin: {admin.User.UserName} (level {admin.Level}), The admin has foreign key to another user");
+
 
                 long user_id = _userDAO.Add(admin.User);
 
@@ -50,9 +47,6 @@ namespace BL
 
             result = Execute(() =>
             {
-                if (airlineCompany.User.Id != 0)
-                    throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} (level: {token.User.Level}) tried to add the following airline company: {airlineCompany}, The airline company has foreign key to another user");
-
                 long user_id = _userDAO.Add(airlineCompany.User);
 
                 airlineCompany.User.Id = user_id;
@@ -79,9 +73,6 @@ namespace BL
 
             result = Execute(() =>
             {
-                if (customer.User.Id != 0)
-                    throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} (level: {token.User.Level}) tried to add the following customer: {customer}, The customer has foreign key to another user");
-
                 long user_id = _userDAO.Add(customer.User);
 
                 customer.User.Id = user_id;
@@ -160,8 +151,8 @@ namespace BL
                         _ticketDAO.Remove(ticket);
                     }
 
-                IList<Flight> flights= _flightDAO.GetFlightsByAirlineCompany(airlineCompany);
-                if (flights.Count>0)
+                IList<Flight> flights = _flightDAO.GetFlightsByAirlineCompany(airlineCompany);
+                if (flights.Count > 0)
                     foreach (var flight in flights)
                     {
                         _flightsTicketsHistoryDAO.Add(flight, FlightStatus.Cancelled_By_Administrator);
@@ -194,7 +185,7 @@ namespace BL
 
                 IList<Ticket> tickets = _ticketDAO.GetTicketsByCustomer(customer);
 
-                if(tickets.Count>0)
+                if (tickets.Count > 0)
                     foreach (var ticket in tickets)
                     {
                         _flightsTicketsHistoryDAO.Add(ticket, TicketStatus.Cancelled_By_Administrator);

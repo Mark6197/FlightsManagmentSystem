@@ -90,7 +90,16 @@ namespace BL
         {
             IList<Ticket> result = null;
 
-            result = Execute(() => _ticketDAO.GetTicketsByFlight(flight), new { Token = token, Flight = flight }, _logger);
+            result = Execute(() => {
+
+                if (token.User != flight.AirlineCompany)
+                    throw new NotAllowedAirlineActionException($"Airline company {token.User.Name} not allowed to get tickets of flight {flight.Id} that belongs to {flight.AirlineCompany.Name}");
+
+                result = _ticketDAO.GetTicketsByFlight(flight);
+
+                return result;
+                
+            }, new { Token = token, Flight = flight }, _logger);
 
             return result;
         }

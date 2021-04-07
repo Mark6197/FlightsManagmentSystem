@@ -11,6 +11,9 @@ namespace Domain.ExtentionMethods
             foreach (var item in enumerable)
                 result_string_builder.Append($"{item}, ");
 
+            if (result_string_builder.Length == 0)
+                return "Empty collection";
+
             return result_string_builder.ToString();
         }
     }

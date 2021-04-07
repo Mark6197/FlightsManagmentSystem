@@ -3,6 +3,7 @@ using BL.Interfaces;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,15 +17,16 @@ namespace FlightsManagmentSystemWebAPI.Controllers
     {
         private readonly IFlightCenterSystem _flightCenterSystem= FlightCenterSystem.GetInstance();
         private readonly IAnonymousUserFacade _anonymousUserFacade;
+        private readonly ILogger<AnonymousFacadeController> _logger;
 
-        public AnonymousFacadeController()
+        public AnonymousFacadeController(ILogger<AnonymousFacadeController> logger)
         {
-            //_flightCenterSystem = flightCenterSystem;
             _anonymousUserFacade = _flightCenterSystem.GetFacade<AnonymousUserFacade>();
+            _logger = logger;
         }
 
         [HttpGet("GetAllFlights")]
-        public IActionResult GetAllFlights()
+        public ActionResult<IList<Flight>> GetAllFlights()
         {
             IList<Flight> flights=_anonymousUserFacade.GetAllFlights();
             if (flights.Count == 0)
@@ -34,7 +36,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetAllAirlineCompanies")]
-        public IActionResult GetAllAirlineCompanies()
+        public ActionResult<IList<AirlineCompany>> GetAllAirlineCompanies()
         {
             IList<AirlineCompany> airlineCompanies = _anonymousUserFacade.GetAllAirlineCompanies();
             if (airlineCompanies.Count == 0)
@@ -44,7 +46,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetAllFlightsVacancy")]
-        public IActionResult GetAllFlightsVacancy()
+        public ActionResult<IDictionary<Flight, int>> GetAllFlightsVacancy()
         {
             IDictionary<Flight,int> flights_vacancy = _anonymousUserFacade.GetAllFlightsVacancy();
             if (flights_vacancy.Count == 0)
@@ -54,7 +56,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetAllCountries")]
-        public IActionResult GetAllCountries()
+        public ActionResult<IList<Country>> GetAllCountries()
         {
             IList<Country> countries = _anonymousUserFacade.GetAllCountries();
             if (countries.Count == 0)
@@ -64,7 +66,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetAirlineCompanyById")]
-        public IActionResult GetAirlineCompanyById(int id)//maybe change to long later
+        public ActionResult<AirlineCompany> GetAirlineCompanyById(long id)
         {
             AirlineCompany airlineCompany = _anonymousUserFacade.GetAirlineCompanyById(id);
             if (airlineCompany == null)
@@ -74,7 +76,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetFlightById")]
-        public IActionResult GetFlightById(int id)//maybe change to long later
+        public ActionResult<Flight> GetFlightById(long id)
         {
             Flight flight = _anonymousUserFacade.GetFlightById(id);
             if (flight == null)
@@ -84,7 +86,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetCountryById")]
-        public IActionResult GetCountryById(int id)
+        public ActionResult<Country> GetCountryById(int id)
         {
             Country country = _anonymousUserFacade.GetCountryById(id);
             if (country == null)
@@ -94,7 +96,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetFlightsByOriginCountry")]
-        public IActionResult GetFlightsByOriginCountry(int countryId)
+        public ActionResult<IList<Flight>> GetFlightsByOriginCountry(int countryId)
         {
             IList<Flight> flights = _anonymousUserFacade.GetFlightsByOriginCountry(countryId);
             if (flights.Count == 0)
@@ -104,7 +106,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetFlightsByDestinationCountry")]
-        public IActionResult GetFlightsByDestinationCountry(int countryId)
+        public ActionResult<IList<Flight>> GetFlightsByDestinationCountry(int countryId)
         {
             IList<Flight> flights = _anonymousUserFacade.GetFlightsByDestinationCountry(countryId);
             if (flights.Count == 0)
@@ -114,7 +116,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetFlightsByDepatrureDate")]
-        public IActionResult GetFlightsByDepatrureDate(DateTime departureDate)
+        public ActionResult<IList<Flight>> GetFlightsByDepatrureDate(DateTime departureDate)
         {
             IList<Flight> flights = _anonymousUserFacade.GetFlightsByDepatrureDate(departureDate);
             if (flights.Count == 0)
@@ -124,7 +126,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         }
 
         [HttpGet("GetFlightsByLandingDate")]
-        public IActionResult GetFlightsByLandingDate(DateTime landingDate)
+        public ActionResult<IList<Flight>> GetFlightsByLandingDate(DateTime landingDate)
         {
             IList<Flight> flights = _anonymousUserFacade.GetFlightsByLandingDate(landingDate);
             if (flights.Count == 0)

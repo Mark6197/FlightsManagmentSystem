@@ -41,7 +41,7 @@ namespace ConfigurationService
             m_file_name = file_name != null ? file_name : "FlightsManagmentSystem.Config.json";//Check if there is file name provided if not go for the default
             m_init = true;//Set the init to true
 
-            //If configuration file not exists through error and quit
+            //If configuration file not exists throw error and quit
             if (!File.Exists(m_file_name))
             {
                 my_logger.Fatal($"File {m_file_name} does not exist!");

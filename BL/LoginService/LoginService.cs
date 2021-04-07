@@ -29,6 +29,7 @@ namespace BL.LoginService
         public bool TryLogin(string userName, string password, out ILoginToken token, out FacadeBase facade)
         {
             _logger.Info($"{userName} trying to login");
+
             if (userName == "admin" && password == "9999")
             {
                 token = new LoginToken<Administrator>(new Administrator("Admin", "Admin", AdminLevel.Main_Admin, new User(userName, password, "admin@admin.com", UserRoles.Administrator)));
@@ -80,23 +81,35 @@ namespace BL.LoginService
             }
         }
 
-        public bool IsValidUserNameAndPassword(string username, string password)
-        {
-            //Administrator admin = _adminDAO.GetAdministratorByUsernameAndPassword(username, password);
-            //if (admin != null)
-            //    return true;
+        //public bool IsValidUserNameAndPassword(string username, string password, out UserRoles role)
+        //{
+        //    _logger.Info($"{username} trying to login");
 
-            //Customer customer = _customerDAO.GetCustomerByUsernameAndPassword(username, password);
-            //if (customer != null)
-            //    return true;
+        //    if (username == "admin" && password == "9999")
+        //    {
+        //        _logger.Info($"{username} succeeded to login as main administrator");
+        //        role = UserRoles.Administrator;
+        //        return true;
+        //    }
+        //    try
+        //    {
+        //        User user = _userDAO.GetUserByUserNameAndPassword(username, password);
 
-            //AirlineCompany airlineCompany = _airlineDAO.GetAirlineByUsernameAndPassword(username, password);
-            //if (airlineCompany != null)
-            //    return true;
+        //        if (user == null)
+        //            throw new WrongCredentialsException();
 
-            //return false;
+        //        role = user.UserRole;
 
-            throw new NotImplementedException();
-        }
+        //        _logger.Info($"{username} succeeded to login as {user.UserRole}");
+
+        //        return true;
+        //    }
+        //    catch (WrongCredentialsException)
+        //    {
+        //        _logger.Info($"{username} failed to login");
+        //        role = UserRoles.Anonymous;
+        //        return false;
+        //    }
+        //}
     }
 }

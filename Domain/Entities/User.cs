@@ -6,6 +6,7 @@ namespace Domain.Entities
 {
     public enum UserRoles
     { 
+        Anonymous=0,
         Administrator=1,
         Customer=2,
         Airline_Company=3

@@ -10,7 +10,7 @@ namespace BL.Interfaces
     {
         IList<Customer> GetAllCustomers(LoginToken<Administrator> token);
         long CreateNewAirlineCompany(LoginToken<Administrator> token, AirlineCompany airline);
-        void UpdateAirlineDetails(LoginToken<Administrator> token, AirlineCompany customer);
+        void UpdateAirlineDetails(LoginToken<Administrator> token, AirlineCompany airline);
         void RemoveAirline(LoginToken<Administrator> token, AirlineCompany airline);
         long CreateNewCustomer(LoginToken<Administrator> token, Customer customer);
         void UpdateCustomerDetails(LoginToken<Administrator> token, Customer customer);
