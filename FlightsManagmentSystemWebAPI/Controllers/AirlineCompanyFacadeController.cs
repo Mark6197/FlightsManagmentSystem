@@ -1,54 +1,91 @@
-﻿using BL;
+﻿using AutoMapper;
+using BL;
 using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
 using DAL.Exceptions;
 using Domain.Entities;
-using Microsoft.AspNetCore.Http;
+using FlightsManagmentSystemWebAPI.Dtos;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FlightsManagmentSystemWebAPI.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
+    [Authorize(Roles = "Airline_Company")]
     public class AirlineCompanyFacadeController : LoggedInControllerBase<AirlineCompany>
     {
-        private readonly IFlightCenterSystem _flightCenterSystem = FlightCenterSystem.GetInstance();
+        private readonly IFlightCenterSystem _flightCenterSystem;
+        private readonly IMapper _mapper;
         private readonly ILoggedInAirlineFacade _loggedInAirlineFacade;
         private readonly LinkGenerator _linkGenerator;
         private readonly ILogger<AirlineCompanyFacadeController> _logger;
 
-        public AirlineCompanyFacadeController(LinkGenerator linkGenerator, ILogger<AirlineCompanyFacadeController> logger)
+        public AirlineCompanyFacadeController(IFlightCenterSystem flightCenterSystem, IMapper mapper, LinkGenerator linkGenerator, ILogger<AirlineCompanyFacadeController> logger)
         {
+            _flightCenterSystem = flightCenterSystem;
+            _mapper = mapper;
             _loggedInAirlineFacade = _flightCenterSystem.GetFacade<LoggedInAirlineFacade>();
             _linkGenerator = linkGenerator;
             _logger = logger;
         }
 
-        [HttpGet(nameof(GetAllTickets))]
-        public ActionResult<IList<Ticket>> GetAllTickets()
+        /// <summary>
+        /// Get list of all the tickets belonging to the logged-in airline company
+        /// </summary>
+        /// <returns>List of all the tickets</returns>
+        /// <param name="companyName">The name of the airline company</param>
+        /// <response code="200">Returns the list of tickets</response>
+        /// <response code="204">If the list of tickets is empty</response> 
+        /// <response code="401">If the user is not authenticated as airline company</response> 
+        /// <response code="403">If airline company name in the url is different than the logged in airline name</response> 
+        [HttpGet("{companyName}/Tickets")]//not sure if companyName necessary maybe add ? so it can be optional
+        public ActionResult<IList<TicketDetailsDTO>> GetAllTickets(string companyName)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
+
+            if (companyName != airline_token.User.Name)
+                return Forbid();//might use unauthorized
 
             IList<Ticket> tickets = _loggedInAirlineFacade.GetAllTickets(airline_token);
             if (tickets.Count == 0)
                 return NoContent();
 
-            return Ok(tickets);
+            List<TicketDetailsDTO> ticketDetailsDTOs = new List<TicketDetailsDTO>();
+            foreach (var ticket in tickets)
+                ticketDetailsDTOs.Add(_mapper.Map<TicketDetailsDTO>(ticket));
+
+            return Ok(ticketDetailsDTOs);
         }
 
-        [HttpGet(nameof(GetAllTicketsByFlight))]
-        public ActionResult<IList<Ticket>> GetAllTicketsByFlight(Flight flight)
+        /// <summary>
+        /// Get list of all the tickets belonging to the logged-in airline company
+        /// </summary>
+        /// <returns>List of all the tickets</returns>
+        /// <param name="companyName">The name of the airline company</param>
+        /// <param name="flight_id">The id of the flight</param>
+        /// <response code="200">Returns the list of tickets</response>
+        /// <response code="204">If the list of tickets is empty</response> 
+        /// <response code="401">If the user is not authenticated as airline company</response> 
+        /// <response code="403">If airline company name in the url is different than the logged in airline name</response> 
+        /// <response code="404">If the flight is not found</response> 
+        [HttpGet("{companyName}/Flights/{flight_id}/Tickets")]
+        public ActionResult<IList<TicketDetailsDTO>> GetAllTicketsByFlight(string companyName, long flight_id)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
             IList<Ticket> tickets = null;
+
+            if (companyName != airline_token.User.Name)
+                return Forbid();//might use unauthorized
+
+            Flight flight = _loggedInAirlineFacade.GetFlightById(flight_id);
+            if (flight == null)
+                return NotFound();
+
             try
             {
                 tickets = _loggedInAirlineFacade.GetAllTicketsByFlight(airline_token, flight);
@@ -57,109 +94,205 @@ namespace FlightsManagmentSystemWebAPI.Controllers
             }
             catch (NotAllowedAirlineActionException)
             {
-                return Unauthorized();
+                return Forbid();
             }
 
-            return Ok(tickets);
+            List<TicketDetailsDTO> ticketDetailsDTOs = new List<TicketDetailsDTO>();
+            foreach (var ticket in tickets)
+                ticketDetailsDTOs.Add(_mapper.Map<TicketDetailsDTO>(ticket));
+
+            return Ok(ticketDetailsDTOs);
         }
 
-        [HttpGet(nameof(GetAllFlights))]
-        public ActionResult<IList<Flight>> GetAllFlights()
+        /// <summary>
+        /// Get list of all the flights belonging to the logged-in airline company
+        /// </summary>
+        /// <returns>List of all the flights</returns>
+        /// <response code="200">Returns the list of flights</response>
+        /// <response code="204">If the list of flights is empty</response> 
+        /// <response code="401">If the user is not authenticated as airline company</response> 
+        /// <response code="403">If airline company name in the url is different than the logged in airline name</response> 
+        [HttpGet("{companyName}/Flights")]
+        public ActionResult<IList<FlightDetailsDTO>> GetAllFlights(string companyName)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
+
+            if (companyName != airline_token.User.Name)
+                return Forbid();
 
             IList<Flight> flights = _loggedInAirlineFacade.GetAllFlights(airline_token);
             if (flights.Count == 0)
                 return NoContent();
 
-            return Ok(flights);
+            List<FlightDetailsDTO> flightsDetailsDTOs = new List<FlightDetailsDTO>();
+            foreach (var flight in flights)
+                flightsDetailsDTOs.Add(_mapper.Map<FlightDetailsDTO>(flight));
+
+            return Ok(flightsDetailsDTOs);
         }
 
-        [HttpDelete(nameof(CancelFlight))]
-        public IActionResult CancelFlight(Flight flight)
+        /// <summary>
+        /// Cancel flight and associated tickets
+        /// </summary>
+        /// <param name="id">The id of the flight that has to be removed</param>
+        /// <response code="204">The flight has been removed successfully</response>
+        /// <response code="401">If the user is not authenticated as airline company</response> 
+        /// <response code="403">If the flight doesn't belong to the logged-in airline company</response>
+        /// <response code="404">If the flight that has to be removed not exist</response>
+        [HttpDelete("Flights/{id}")]
+        public IActionResult CancelFlight(long id)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
+
+            Flight flight = _loggedInAirlineFacade.GetFlightById(id);
+            if (flight == null)
+                return NotFound();
+
             try
             {
                 _loggedInAirlineFacade.CancelFlight(airline_token, flight);
             }
             catch (NotAllowedAirlineActionException)
             {
-                return Unauthorized();
+                return Forbid();
             }
 
             return NoContent();
         }
 
-        [HttpPost(nameof(CreateFlight))]
-        public ActionResult<Flight> CreateFlight(Flight flight)
+        /// <summary>
+        /// Create new flight
+        /// </summary>
+        /// <returns>Airline company that has been created</returns>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     POST /CreateFlightDTO
+        ///     {  
+        ///         "originCountryId": 1,
+        ///         "destinationCountryId": 1,
+        ///         "departureTime": 2021-10-10 18:00:00,
+        ///         "landingTime": 2021-10-10 21:00:00,
+        ///         "remainingTickets": 10,
+        ///     }
+        /// </remarks>  
+        /// <param name="createFlightDTO">DTO that holds the data for creating flight</param>
+        /// <response code="201">The flight has been created successfully</response>
+        /// <response code="401">If the user is not authenticated as airline company</response> 
+        /// <response code="404">If the country id doesn't point to existing country</response> 
+        [HttpPost("Flights")]
+        public ActionResult<Flight> CreateFlight(CreateFlightDTO createFlightDTO)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
+
+            Flight flight = _mapper.Map<Flight>(createFlightDTO);
+
             string uri = null;
+
             try
             {
                 flight.Id = _loggedInAirlineFacade.CreateFlight(airline_token, flight);
-                if (flight.Id == 0)
-                    return Conflict();
 
                 uri = _linkGenerator.GetPathByAction(nameof(AnonymousFacadeController.GetFlightById), "AnonymousFacade", new { id = flight.Id });
-
             }
-            catch (RecordAlreadyExistsException)
+            catch (RelatedRecordNotExistsException)
             {
-                return Conflict();
+                return NotFound();
             }
 
             return Created(uri, flight);
         }
 
-        [HttpPut(nameof(UpdateFlight))]
-        public IActionResult UpdateFlight(Flight flight)
+        /// <summary>
+        /// Update existing flight details
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     PUT /UpdateFlightDTO
+        ///     {
+        ///         "id": 1,
+        ///         "originCountryId": 1,
+        ///         "destinationCountryId": 1,
+        ///         "departureTime": 2021-10-10 18:00:00,
+        ///         "landingTime": 2021-10-10 21:00:00,
+        ///         "remainingTickets": 10,
+        ///     }
+        /// </remarks>  
+        /// <param name="id">The id of the flight that will be updated</param>
+        /// <param name="updateFlightDTO">DTO that holds the data for updating flight</param>
+        /// <response code="204">The flight has been updated successfully</response>
+        /// <response code="400">If the airline company id is different between the url and the body</response> 
+        /// <response code="401">If the user is not authenticated as airline company</response> 
+        /// <response code="403">If the flight doesn't belong to the logged-in airline company</response>
+        /// <response code="404">If the flight has not been found or the country id doesn't point to existing country</response> 
+        [HttpPut("Flights/{id}")]
+        public IActionResult UpdateFlight(long id, UpdateFlightDTO updateFlightDTO)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
 
+            if (id == 0)
+                return NotFound();
+
+            if (id != updateFlightDTO.Id)
+                return BadRequest();
+
+            Flight flight = _mapper.Map<Flight>(updateFlightDTO);
+
+            Flight original_flight = _loggedInAirlineFacade.GetFlightById(flight.Id);
+
+            if (original_flight == null)
+                return NotFound();
+
+            if (original_flight.AirlineCompany != airline_token.User)
+                return Forbid();
+
+            flight.AirlineCompany = airline_token.User;
+
             try
             {
-                if (flight.Id == 0)
-                    return NotFound();
-
                 _loggedInAirlineFacade.UpdateFlight(airline_token, flight);
             }
-            catch (RecordAlreadyExistsException)
+            catch (NotAllowedAirlineActionException)//might be irrelevant, we are checking it here also
             {
-                return Conflict();
+                return Forbid();
             }
-            catch (NotAllowedAirlineActionException)
+            catch (RelatedRecordNotExistsException)
             {
-                return Unauthorized();
-            }
-            return NoContent();
-        }
-
-        [HttpPut(nameof(ChangeMyPassword))]
-        public IActionResult ChangeMyPassword(string oldPassword, string newPassword)
-        {
-            LoginToken<AirlineCompany> airline_token = DesirializeToken();
-
-            if (oldPassword == newPassword)
-                return BadRequest();
-
-            try
-            {
-                _loggedInAirlineFacade.ChangeMyPassword(airline_token, oldPassword, newPassword);
-            }
-            catch (WrongPasswordException)
-            {
-                return BadRequest();
+                return NotFound();
             }
 
             return NoContent();
         }
 
-        [HttpPut(nameof(MofidyAirlineDetails))]
-        public IActionResult MofidyAirlineDetails(AirlineCompany airline)
+
+        /// <summary>
+        /// Update the logged-in airline company details
+        /// </summary>
+        /// <remarks>
+        /// Sample request:
+        ///
+        ///     PUT /updateAirlineCompanyDTO
+        ///     {
+        ///         "id": 1,
+        ///         "name": "Arkia",
+        ///         "countryId": 1,
+        ///     }
+        /// </remarks>  
+        /// <param name="updateAirlineCompanyDTO">DTO that holds the data for updating the airline company</param>
+        /// <response code="204">The airline company has been updated successfully</response>
+        /// <response code="401">If the user is not authenticated as airline company</response> 
+        /// <response code="403">If the id of the logged-in airline company is different then the id in the request DTO</response>
+        /// <response code="404">If the country id doesn't point to existing country</response> 
+        [HttpPut("Airline-Companies")]
+        public IActionResult MofidyAirlineDetails(UpdateAirlineCompanyDTO updateAirlineCompanyDTO)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
+
+            if (airline_token.User.Id != updateAirlineCompanyDTO.Id)
+                return Forbid();
+
+            AirlineCompany airline = _mapper.Map<AirlineCompany>(updateAirlineCompanyDTO);
 
             try
             {
@@ -167,31 +300,47 @@ namespace FlightsManagmentSystemWebAPI.Controllers
             }
             catch (NotAllowedAirlineActionException)
             {
-                return Unauthorized();
+                return Forbid();
+            }
+            catch (RelatedRecordNotExistsException)
+            {
+                return NotFound();
             }
 
             return NoContent();
         }
 
-        [HttpGet(nameof(GetFlightHistoryByOriginalId))]
-        public ActionResult<FlightHistory> GetFlightHistoryByOriginalId(long original_id)
+        /// <summary>
+        /// Get specific flight history by id
+        /// </summary>
+        /// <returns>Flight History</returns>
+        /// <param name="id">The id of the flight history that you wish to get</param>
+        /// <response code="200">Returns desired flight history</response>
+        /// <response code="401">If the user is not authenticated as airline company</response> 
+        /// <response code="403">If the flight history doesn't belong to the logged-in airline company</response>
+        /// <response code="404">If the desired flight history is not found</response> 
+        [HttpGet("history/flights/{id}")]
+        public ActionResult<FlightHistory> GetFlightHistoryByOriginalId(long id)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
             FlightHistory flightHistory = null;
 
             try
             {
-                flightHistory = _loggedInAirlineFacade.GetFlightHistoryByOriginalId(airline_token, original_id);
+                flightHistory = _loggedInAirlineFacade.GetFlightHistoryByOriginalId(airline_token, id);
                 if (flightHistory == null)
                     return NotFound();
+
+                if (flightHistory.AirlineCompanyId != airline_token.User.Id)
+                    return Forbid();
+
             }
             catch (NotAllowedAirlineActionException)
             {
-                return Unauthorized();
+                return Forbid();
             }
 
             return Ok(flightHistory);
         }
-
     }
 }

@@ -1,12 +1,10 @@
 ﻿using BL.LoginService;
 using Domain.Entities;
-using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace BL.Interfaces
 {
-    public interface ILoggedInAdministratorFacade//Need to add tests for validation of the admin level
+    public interface ILoggedInAdministratorFacade : IAnonymousUserFacade
     {
         IList<Customer> GetAllCustomers(LoginToken<Administrator> token);
         long CreateNewAirlineCompany(LoginToken<Administrator> token, AirlineCompany airline);

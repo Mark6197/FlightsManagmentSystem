@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using DAL.ExtentionMethods;
+using Domain.Entities;
 using Domain.Interfaces;
 using Npgsql;
 using System;
@@ -103,9 +104,9 @@ namespace DAL
                                 Id = (long)reader["customer_id"],
                                 FirstName = (string)reader["first_name"],
                                 LastName = (string)reader["last_name"],
-                                Address = (string)reader["address"],
+                                Address = reader.GetSafeString(reader.GetOrdinal("address")),
                                 PhoneNumber = (string)reader["phone_number"],
-                                CreditCardNumber = (string)reader["credit_card_number"],
+                                CreditCardNumber = reader.GetSafeString(reader.GetOrdinal("credit_card_number")),
                                 User = new User
                                 {
                                     Id = (long)reader["user_id"],
@@ -165,9 +166,9 @@ namespace DAL
                                 Id = (long)reader["customer_id"],
                                 FirstName = (string)reader["first_name"],
                                 LastName = (string)reader["last_name"],
-                                Address = (string)reader["address"],
+                                Address = reader.GetSafeString(reader.GetOrdinal("address")),
                                 PhoneNumber = (string)reader["phone_number"],
-                                CreditCardNumber = (string)reader["credit_card_number"],
+                                CreditCardNumber = reader.GetSafeString(reader.GetOrdinal("credit_card_number")),
                                 User = new User
                                 {
                                     Id = (long)reader["user_id"],
@@ -227,9 +228,9 @@ namespace DAL
                                 Id = (long)reader["customer_id"],
                                 FirstName = (string)reader["first_name"],
                                 LastName = (string)reader["last_name"],
-                                Address = (string)reader["address"],
+                                Address = reader.GetSafeString(reader.GetOrdinal("address")),
                                 PhoneNumber = (string)reader["phone_number"],
-                                CreditCardNumber = (string)reader["credit_card_number"],
+                                CreditCardNumber = reader.GetSafeString(reader.GetOrdinal("credit_card_number")),
                                 User = new User
                                 {
                                     Id = (long)reader["user_id"],

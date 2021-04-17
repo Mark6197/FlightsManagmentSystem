@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Interfaces;
 using Npgsql;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -24,9 +25,9 @@ namespace DAL
                 {
                     new NpgsqlParameter("_first_name", customer.FirstName),
                     new NpgsqlParameter("_last_name", customer.LastName),
-                    new NpgsqlParameter("_address", customer.Address),
+                    new NpgsqlParameter("_address", (object)customer.Address??DBNull.Value),
                     new NpgsqlParameter("_phone_number", customer.PhoneNumber),
-                    new NpgsqlParameter("_credit_card_number", customer.CreditCardNumber),
+                    new NpgsqlParameter("_credit_card_number", (object)customer.CreditCardNumber ?? DBNull.Value),
                     new NpgsqlParameter("_user_id", customer.User.Id)
                 });
                 command.CommandType = System.Data.CommandType.StoredProcedure;
@@ -63,6 +64,24 @@ namespace DAL
             List<Customer> result = new List<Customer>();
 
             result = Execute(() => Run_Generic_SP("sp_get_all_customers", new { }, conn), new { }, conn, _logger);
+
+            return result;
+        }
+
+        public Customer GetCustomerByPhone(string phone)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            Customer result = null;
+
+            result = Execute(() =>
+            {
+                List<Customer> customers = Run_Generic_SP("sp_get_customer_by_phone_number", new { _phone_number = phone }, conn);
+
+                if (customers.Count > 0)
+                    result = customers[0];
+
+                return result;
+            }, new { PhoneNumber = phone }, conn, _logger);
 
             return result;
         }
@@ -124,7 +143,7 @@ namespace DAL
 
             Execute(() =>
             {
-                string procedure = "call sp_update_customer(@_id, @_first_name, @_last_name, @_address, @_phone_number, @_credit_card_number, @_user_id)";
+                string procedure = "call sp_update_customer(@_id, @_first_name, @_last_name, @_address, @_phone_number, @_credit_card_number)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.AddRange(new NpgsqlParameter[]
@@ -132,10 +151,9 @@ namespace DAL
                     new NpgsqlParameter("@_id", customer.Id),
                     new NpgsqlParameter("@_first_name", customer.FirstName),
                     new NpgsqlParameter("@_last_name", customer.LastName),
-                    new NpgsqlParameter("@_address", customer.Address),
+                    new NpgsqlParameter("@_address", (object)customer.Address??DBNull.Value),
                     new NpgsqlParameter("@_phone_number", customer.PhoneNumber),
-                    new NpgsqlParameter("@_credit_card_number", customer.CreditCardNumber),
-                    new NpgsqlParameter("@_user_id", customer.User.Id)
+                    new NpgsqlParameter("@_credit_card_number", (object)customer.CreditCardNumber??DBNull.Value)
                 });
 
                 command.ExecuteNonQuery();

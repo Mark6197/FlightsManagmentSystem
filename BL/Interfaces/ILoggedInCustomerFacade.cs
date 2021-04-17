@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace BL.Interfaces
 {
-    public interface ILoggedInCustomerFacade
+    public interface ILoggedInCustomerFacade: IAnonymousUserFacade
     {
         IList<Flight> GetAllMyFlights(LoginToken<Customer> token);
         IList<Ticket> GetAllMyTickets(LoginToken<Customer> token);

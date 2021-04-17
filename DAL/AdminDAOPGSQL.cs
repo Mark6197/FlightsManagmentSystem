@@ -106,7 +106,7 @@ namespace DAL
 
             Execute(() =>
             {
-                string procedure = "call sp_update_administrator(@_id, @_first_name, @_last_name, @_level, @_user_id)";
+                string procedure = "call sp_update_administrator(@_id, @_first_name, @_last_name, @_level)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.AddRange(new NpgsqlParameter[]
@@ -114,8 +114,7 @@ namespace DAL
                     new NpgsqlParameter("@_id", admin.Id),
                     new NpgsqlParameter("@_first_name", admin.FirstName),
                     new NpgsqlParameter("@_last_name", admin.LastName),
-                    new NpgsqlParameter("@_level", (int)admin.Level),
-                    new NpgsqlParameter("@_user_id", admin.User.Id)
+                    new NpgsqlParameter("@_level", (int)admin.Level)
                 });
 
                 command.ExecuteNonQuery();

@@ -1,22 +1,16 @@
-using BL;
-using ConfigurationService;
 using FlightsManagmentSystemWebAPI.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IO;
+using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace FlightsManagmentSystemWebAPI
 {
@@ -32,11 +26,13 @@ namespace FlightsManagmentSystemWebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            //services.AddSingleton<IFlightCenterSystem, FlightCenterSystem>();
-            FlightsManagmentSystemConfig.Instance.Init();
-            FlightCenterSystem.GetInstance();
 
-            services.AddControllers();
+            services.AddControllers()
+                .ConfigureApiBehaviorOptions(options =>
+            {
+                options.SuppressMapClientErrors = true;//Removes the ProblemDetails body generated for ststus code of 400+
+            })
+                ;
 
 
             var jwtTokenConfig = Configuration.GetSection("jwtTokenConfig").Get<JwtTokenConfig>();//read the values required to configure the jet token from the configuration file
@@ -58,11 +54,12 @@ namespace FlightsManagmentSystemWebAPI
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ClockSkew = TimeSpan.FromMinutes(1)
-                    //RoleClaimType = "role"
                 };
             });
             services.AddSingleton<IJwtAuthManager, JwtAuthManager>();//Register JwtAuthManager as singleton
             services.AddHostedService<JwtRefreshTokenCache>();//Register JwtRefreshTokenCache as Hosted Service which implement background task running on a timer
+
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
             services.AddSwaggerGen(c =>
             {
@@ -87,26 +84,9 @@ namespace FlightsManagmentSystemWebAPI
                     {securityScheme, new string[] { }}
                 });
 
-                //c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-                //{
-                //    In = ParameterLocation.Header,
-                //    Description = "Please insert JWT with Bearer into field",
-                //    Name = "Authorization",
-                //    Type = SecuritySchemeType.ApiKey
-                //});
-                //c.AddSecurityRequirement(new OpenApiSecurityRequirement {
-                //    {
-                //        new OpenApiSecurityScheme
-                //            {
-                //                Reference = new OpenApiReference
-                //                {
-                //                    Type = ReferenceType.SecurityScheme,
-                //                    Id = "Bearer"
-                //                }
-                //            },
-                //        new string[] { }
-                //    }
-                //});
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
         }
 

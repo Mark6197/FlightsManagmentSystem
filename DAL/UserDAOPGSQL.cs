@@ -65,6 +65,23 @@ namespace DAL
             return result;
         }
 
+        public User GetUserByUserName(string username)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            User result = null;
+
+            result = Execute(() =>
+            {
+                List<User> users = Run_Generic_SP("sp_get_user_by_username", new { _username = username }, conn);
+                if (users.Count > 0)
+                    result = users[0];
+
+                return result;
+            }, new { Username = username }, conn, _logger);
+
+            return result;
+        }
+
         public User GetUserByUserNameAndPassword(string username, string password)
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
@@ -77,7 +94,7 @@ namespace DAL
                     result = users[0];
 
                 return result;
-            }, new { Username = username, Password=password }, conn, _logger);
+            }, new { Username = username, Password = password }, conn, _logger);
 
             return result;
         }

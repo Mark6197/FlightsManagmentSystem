@@ -54,6 +54,23 @@ namespace DAL
             return result;
         }
 
+        public AirlineCompany GetAirlineCompanyByName(string name)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            AirlineCompany result = null;
+            result = Execute(() =>
+            {
+                List<AirlineCompany> airlineCompanies = Run_Generic_SP("sp_get_airline_company_by_name", new { _name = name }, conn);
+
+                if (airlineCompanies.Count > 0)
+                    result = airlineCompanies[0];
+
+                return result;
+            }, new { Name = name }, conn, _logger);
+
+            return result;
+        }
+
         public AirlineCompany GetAirlineCompanyByUserId(long user_id)
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
@@ -72,7 +89,7 @@ namespace DAL
             return result;
         }
 
-        public AirlineCompany GetAirlineByUsername(string username)
+        public AirlineCompany GetAirlineCompanyByUsername(string username)
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
             AirlineCompany result = null;
@@ -128,15 +145,14 @@ namespace DAL
 
             Execute(() =>
             {
-                string procedure = "call sp_update_airline_company(@_id, @_name, @_country_id, @_user_id)";
+                string procedure = "call sp_update_airline_company(@_id, @_name, @_country_id)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.AddRange(new NpgsqlParameter[]
                 {
                     new NpgsqlParameter("@_id", airlineCompany.Id),
                     new NpgsqlParameter("@_name", airlineCompany.Name),
-                    new NpgsqlParameter("@_country_id", airlineCompany.CountryId),
-                    new NpgsqlParameter("@_user_id", airlineCompany.User.Id)
+                    new NpgsqlParameter("@_country_id", airlineCompany.CountryId)
                 });
 
                 command.ExecuteNonQuery();

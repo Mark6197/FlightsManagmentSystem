@@ -6,7 +6,8 @@ namespace Domain.Interfaces
     public interface IAirlineDAO : IBasicDB<AirlineCompany>
     {
         AirlineCompany GetAirlineCompanyByUserId(long user_id);
-        AirlineCompany GetAirlineByUsername(string username);
+        AirlineCompany GetAirlineCompanyByUsername(string username);
+        AirlineCompany GetAirlineCompanyByName(string name);
         IList<AirlineCompany> GetAllAirlinesByCountry(int countryId);
     }
 }

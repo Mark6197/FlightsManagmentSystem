@@ -1,5 +1,6 @@
 ﻿using ConfigurationService;
 using DAL.Exceptions;
+using DAL.ExtentionMethods;
 using Domain.Entities;
 using Domain.ExtentionMethods;
 using Domain.Interfaces;
@@ -73,9 +74,18 @@ namespace DAL
                 if (custom_attr_column_name.Length > 0)//If there is at least one attribute (in this program there won't be 2 column attributes on same prop)
                     column_name = custom_attr_column_name[0].Name;//Set the column name as the column attribute value
 
-                var value = reader[column_name];//Get the value from DB
 
-                prop.SetValue(instance, value);//Set the prop value as the value that was read
+                if (prop.PropertyType == typeof(string))//Check if property is a string (some of the strings might be nulls);
+                {
+                    var value = reader.GetSafeString(reader.GetOrdinal(column_name));//Get the string safely, if there is not string return null
+                    prop.SetValue(instance, value);//Set the prop value as the value that was read (might be null)
+                }
+                else
+                {
+                    var value = reader[column_name];//Get the value from DB
+                    prop.SetValue(instance, value);//Set the prop value as the value that was read
+                }
+
             }
 
             return instance;
@@ -127,6 +137,8 @@ namespace DAL
             {
                 switch (ex.SqlState)
                 {
+                    case "23503"://When adding record that has foreign key that points to a record that not exist
+                        throw new RelatedRecordNotExistsException(ex, ex.TableName, ex.Statement.ToString(), ex.ConstraintName);
                     case "23505":
                         throw new RecordAlreadyExistsException(ex, ex.TableName, ex.Statement.ToString(), ex.ConstraintName);
                     default:
@@ -162,6 +174,18 @@ namespace DAL
             {
                 switch (ex.SqlState)
                 {
+                    case "23503":
+                        {
+                            if (ex.MessageText.StartsWith("update or delete"))//When removing record that has related records
+                            {
+                                throw new DeleteTargetHasRelatedRecordsException(ex, ex.TableName, ex.Statement.ToString(), ex.ConstraintName);
+                            }
+                            else if (ex.MessageText.StartsWith("insert or update"))//When updating record with foreign key that points to a record that not exist
+                            {
+                                throw new RelatedRecordNotExistsException(ex, ex.TableName, ex.Statement.ToString(), ex.ConstraintName);
+                            }
+                        };
+                        break;
                     case "23505":
                         throw new RecordAlreadyExistsException(ex, ex.TableName, ex.Statement.ToString(), ex.ConstraintName);
                     default:

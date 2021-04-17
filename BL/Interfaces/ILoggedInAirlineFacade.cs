@@ -6,7 +6,7 @@ using System.Text;
 
 namespace BL.Interfaces
 {
-    public interface ILoggedInAirlineFacade
+    public interface ILoggedInAirlineFacade:IAnonymousUserFacade
     {
         IList<Ticket> GetAllTickets(LoginToken<AirlineCompany> token);
         IList<Ticket> GetAllTicketsByFlight(LoginToken<AirlineCompany> token, Flight flight);
@@ -14,7 +14,6 @@ namespace BL.Interfaces
         void CancelFlight(LoginToken<AirlineCompany> token, Flight flight);
         long CreateFlight(LoginToken<AirlineCompany> token, Flight flight);
         void UpdateFlight(LoginToken<AirlineCompany> token, Flight flight);
-        void ChangeMyPassword(LoginToken<AirlineCompany> token, string oldPassword, string newPassword);
         void MofidyAirlineDetails(LoginToken<AirlineCompany> token, AirlineCompany airline);
         FlightHistory GetFlightHistoryByOriginalId(LoginToken<AirlineCompany> token, long original_id);
 

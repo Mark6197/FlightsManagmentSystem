@@ -60,9 +60,9 @@ namespace BL_Tests
             LoggedInAdministratorFacade loggedInAdministratorFacade = admin_facade as LoggedInAdministratorFacade;
             LoginToken<Administrator> adminLoginToken = admin_token as LoginToken<Administrator>;
             int country_id = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[0]);
-            int country_id2 = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[1]);
-            int country_id3 = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[2]);
-            long customer_id = loggedInAdministratorFacade.CreateNewCustomer(adminLoginToken, TestData.Get_Customers_Data()[0]);
+            loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[1]);
+            loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[2]);
+            loggedInAdministratorFacade.CreateNewCustomer(adminLoginToken, TestData.Get_Customers_Data()[0]);
             AirlineCompany airlineCompany = TestData.Get_AirlineCompanies_Data()[0];
             airlineCompany.CountryId = country_id;
             loggedInAdministratorFacade.CreateNewAirlineCompany(adminLoginToken, airlineCompany);
@@ -92,53 +92,53 @@ namespace BL_Tests
             _logger.Debug($"End Init Anonymous Tests Data");
         }
 
-        [TestMethod]
-        public void Get_All_Flights_By_Origin_Country()
-        {
-            Execute_Test(() =>
-            {
-                Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(1).Count, 3);
-                Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(2).Count, 2);
-                Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(3).Count, 1);
-            });
-        }
+        //[TestMethod]
+        //public void Get_All_Flights_By_Origin_Country()
+        //{
+        //    Execute_Test(() =>
+        //    {
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(1).Count, 3);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(2).Count, 2);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByOriginCountry(3).Count, 1);
+        //    });
+        //}
 
 
-        [TestMethod]
-        public void Get_All_Flights_By_Destination_Country()
-        {
-            Execute_Test(() =>
-            {
-                Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(1).Count, 0);
-                Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(2).Count, 4);
-                Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(3).Count, 2);
-            });
-        }
+        //[TestMethod]
+        //public void Get_All_Flights_By_Destination_Country()
+        //{
+        //    Execute_Test(() =>
+        //    {
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(1).Count, 0);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(2).Count, 4);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByDestinationCountry(3).Count, 2);
+        //    });
+        //}
 
-        [TestMethod]
-        public void Get_All_Flighst_By_Departure_Date()
-        {
-            Execute_Test(() =>
-            {
-                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now).Count, 0);
-                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(1)).Count, 3);
-                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(2)).Count, 1);
-                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(3)).Count, 1);
-                Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(4)).Count, 1);
-            });
-        }
+        //[TestMethod]
+        //public void Get_All_Flighst_By_Departure_Date()
+        //{
+        //    Execute_Test(() =>
+        //    {
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now).Count, 0);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(1)).Count, 3);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(2)).Count, 1);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(3)).Count, 1);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByDepatrureDate(DateTime.Now.AddDays(4)).Count, 1);
+        //    });
+        //}
 
-        [TestMethod]
-        public void Get_All_Flights_By_Landing_Date()
-        {
-            Execute_Test(() =>
-            {
-                Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(2)).Count, 2);
-                Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(3)).Count, 2);
-                Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(4)).Count, 0);
-                Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(5)).Count, 2);
-            });
-        }
+        //[TestMethod]
+        //public void Get_All_Flights_By_Landing_Date()
+        //{
+        //    Execute_Test(() =>
+        //    {
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(2)).Count, 2);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(3)).Count, 2);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(4)).Count, 0);
+        //        Assert.AreEqual(anonymous_facade.GetFlightsByLandingDate(DateTime.Now.AddDays(5)).Count, 2);
+        //    });
+        //}
 
         [TestMethod]
         public void Get_All_Flights_Vacancy()
@@ -155,6 +155,117 @@ namespace BL_Tests
 
                     Assert.AreEqual(flight.RemainingTickets, flight_vacancy[flight]);
                 }
+            });
+        }
+
+        [TestMethod]
+        public void Search_Flights_With_No_Parameters()
+        {
+            Execute_Test(() =>
+            {
+                IList<Flight> flights = anonymous_facade.SearchFlights();
+                Assert.AreEqual(flights.Count, 6);
+
+            });
+        }
+
+        [TestMethod]
+        public void Search_Flights_By_Destination_Country()
+        {
+            Execute_Test(() =>
+            {
+                // IList<Flight> flights = anonymous_facade.SearchFlights();
+                Assert.AreEqual(0, anonymous_facade.SearchFlights(destinationCountryId: 1).Count);
+                Assert.AreEqual(4, anonymous_facade.SearchFlights(destinationCountryId: 2).Count);
+                Assert.AreEqual(2, anonymous_facade.SearchFlights(destinationCountryId: 3).Count);
+            });
+        }
+
+        [TestMethod]
+        public void Search_Flights_By_Origin_Country()
+        {
+            Execute_Test(() =>
+            {
+                // IList<Flight> flights = anonymous_facade.SearchFlights();
+                Assert.AreEqual(3, anonymous_facade.SearchFlights(originCountryId: 1).Count);
+                Assert.AreEqual(2, anonymous_facade.SearchFlights(originCountryId: 2).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(originCountryId: 3).Count);
+            });
+        }
+
+        [TestMethod]
+        public void Search_Flights_By_Origin_And_Destination_Country()
+        {
+            Execute_Test(() =>
+            {
+                // IList<Flight> flights = anonymous_facade.SearchFlights();
+                Assert.AreEqual(0, anonymous_facade.SearchFlights(originCountryId: 1, destinationCountryId: 1).Count);
+                Assert.AreEqual(2, anonymous_facade.SearchFlights(originCountryId: 1, destinationCountryId: 2).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(originCountryId: 1, destinationCountryId: 3).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(originCountryId: 2, destinationCountryId: 2).Count);
+                Assert.AreEqual(0, anonymous_facade.SearchFlights(originCountryId: 2, destinationCountryId: 1).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(originCountryId: 3, destinationCountryId: 2).Count);
+            });
+        }
+
+        [TestMethod]
+        public void Search_Flights_By_Departure_Date()
+        {
+            Execute_Test(() =>
+            {
+                // IList<Flight> flights = anonymous_facade.SearchFlights();
+                Assert.AreEqual(0, anonymous_facade.SearchFlights(departureDate: DateTime.Now).Count);
+                Assert.AreEqual(3, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(1)).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(2)).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(3)).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(4)).Count);
+
+            });
+        }
+
+        [TestMethod]
+        public void Search_Flights_By_Landing_Date()
+        {
+            Execute_Test(() =>
+            {
+                // IList<Flight> flights = anonymous_facade.SearchFlights();
+                Assert.AreEqual(0, anonymous_facade.SearchFlights(landingDate: DateTime.Now).Count);
+                Assert.AreEqual(2, anonymous_facade.SearchFlights(landingDate: DateTime.Now.AddDays(2)).Count);
+                Assert.AreEqual(2, anonymous_facade.SearchFlights(landingDate: DateTime.Now.AddDays(3)).Count);
+                Assert.AreEqual(0, anonymous_facade.SearchFlights(landingDate: DateTime.Now.AddDays(4)).Count);
+                Assert.AreEqual(2, anonymous_facade.SearchFlights(landingDate: DateTime.Now.AddDays(5)).Count);
+
+            });
+        }
+
+        [TestMethod]
+        public void Search_Flights_By_Departure_And_Landing_Date()
+        {
+            Execute_Test(() =>
+            {
+                // IList<Flight> flights = anonymous_facade.SearchFlights();
+                Assert.AreEqual(2, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(1), landingDate: DateTime.Now.AddDays(2)).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(1), landingDate: DateTime.Now.AddDays(3)).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(2), landingDate: DateTime.Now.AddDays(3)).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(3), landingDate: DateTime.Now.AddDays(5)).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(4), landingDate: DateTime.Now.AddDays(5)).Count);
+                Assert.AreEqual(0, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(1), landingDate: DateTime.Now.AddDays(1)).Count);
+            });
+        }
+
+        [TestMethod]
+        public void Search_Flights_By_Departure_And_Landing_Date_And_Origin_And_Destionations_Countries()
+        {
+            Execute_Test(() =>
+            {
+                // IList<Flight> flights = anonymous_facade.SearchFlights();
+                Assert.AreEqual(0, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(1), landingDate: DateTime.Now.AddDays(2), originCountryId: 2, destinationCountryId: 3).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(1), landingDate: DateTime.Now.AddDays(3), originCountryId: 2, destinationCountryId: 3).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(1), landingDate: DateTime.Now.AddDays(2), originCountryId: 1, destinationCountryId: 3).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(1), landingDate: DateTime.Now.AddDays(2), originCountryId: 2, destinationCountryId: 2).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(2), landingDate: DateTime.Now.AddDays(3), originCountryId: 3, destinationCountryId: 2).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(3), landingDate: DateTime.Now.AddDays(5), originCountryId: 1, destinationCountryId: 2).Count);
+                Assert.AreEqual(1, anonymous_facade.SearchFlights(departureDate: DateTime.Now.AddDays(4), landingDate: DateTime.Now.AddDays(5), originCountryId: 1, destinationCountryId: 2).Count);
             });
         }
     }

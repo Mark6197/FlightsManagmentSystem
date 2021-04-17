@@ -69,6 +69,56 @@ namespace DAL
             return result;
         }
 
+        public IList<Flight> Search(int originCountryId = 0, int destinationCountryId = 0, DateTime? departureDate = null, DateTime? landingDate = null)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
+
+            result = Execute(() =>
+            {
+                string procedure = "sp_search_flights";
+
+                NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
+                if (originCountryId != 0)
+                    command.Parameters.Add(new NpgsqlParameter("_origin_country_id", originCountryId));
+
+                if (destinationCountryId != 0)
+                    command.Parameters.Add(new NpgsqlParameter("_destination_country_id", destinationCountryId));
+
+                if (departureDate != null)
+                    command.Parameters.Add(new NpgsqlParameter("_departure_date", (NpgsqlDate)departureDate));
+        
+                if (landingDate != null)
+                    command.Parameters.Add(new NpgsqlParameter("_landing_date", (NpgsqlDate)landingDate));
+
+                command.CommandType = System.Data.CommandType.StoredProcedure;
+
+                var reader = command.ExecuteReader();
+                while (reader.Read())
+                {
+                    result.Add(
+                        new Flight
+                        {
+                            Id = (long)reader["flight_id"],
+                            AirlineCompany = new AirlineCompany
+                            {
+                                Id = (long)reader["airline_company_id"],
+                                Name = (string)reader["airline_company_name"],
+                                CountryId = (int)reader["airline_company_country_id"]
+                            },
+                            OriginCountryId = (int)reader["origin_country_id"],
+                            DestinationCountryId = (int)reader["destination_country_id"],
+                            DepartureTime = (DateTime)reader["departure_time"],
+                            LandingTime = (DateTime)reader["landing_time"],
+                            RemainingTickets = (int)reader["remaining_tickets"]
+                        });
+                }
+
+                return result;
+            }, new { }, conn, _logger);
+            return result;
+        }
+
         public Dictionary<Flight, int> GetAllFlightsVacancy()
         {
             NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
@@ -130,49 +180,49 @@ namespace DAL
             return result;
         }
 
-        public IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate)
-        {
-            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
-            List<Flight> result = new List<Flight>();
+        //public IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate)
+        //{
+        //    NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+        //    List<Flight> result = new List<Flight>();
 
-            result = Execute(() => Run_Generic_SP("sp_get_flights_by_departure_date", new { _departure_date = (NpgsqlDate)departureDate }, conn, true),
-                new { DepartureDate = departureDate }, conn, _logger);
+        //    result = Execute(() => Run_Generic_SP("sp_get_flights_by_departure_date", new { _departure_date = (NpgsqlDate)departureDate }, conn, true),
+        //        new { DepartureDate = departureDate }, conn, _logger);
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public IList<Flight> GetFlightsByDestinationCountry(int countryId)
-        {
-            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
-            List<Flight> result = new List<Flight>();
+        //public IList<Flight> GetFlightsByDestinationCountry(int countryId)
+        //{
+        //    NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+        //    List<Flight> result = new List<Flight>();
 
-            result = Execute(() => Run_Generic_SP("sp_get_flights_by_destination_country", new { _destination_country_id = countryId }, conn, true),
-                new { CountryId = countryId }, conn, _logger);
+        //    result = Execute(() => Run_Generic_SP("sp_get_flights_by_destination_country", new { _destination_country_id = countryId }, conn, true),
+        //        new { CountryId = countryId }, conn, _logger);
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public IList<Flight> GetFlightsByLandingDate(DateTime landingDate)
-        {
-            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
-            List<Flight> result = new List<Flight>();
+        //public IList<Flight> GetFlightsByLandingDate(DateTime landingDate)
+        //{
+        //    NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+        //    List<Flight> result = new List<Flight>();
 
-            result = Execute(() => Run_Generic_SP("sp_get_flights_by_landing_date", new { _landing_date = (NpgsqlDate)landingDate }, conn, true),
-                new { LandingDate = landingDate }, conn, _logger);
-         
-            return result;
-        }
+        //    result = Execute(() => Run_Generic_SP("sp_get_flights_by_landing_date", new { _landing_date = (NpgsqlDate)landingDate }, conn, true),
+        //        new { LandingDate = landingDate }, conn, _logger);
 
-        public IList<Flight> GetFlightsByOriginCountry(int countryId)
-        {
-            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
-            List<Flight> result = new List<Flight>();
-           
-            result = Execute(() => Run_Generic_SP("sp_get_flights_by_origin_country", new { _origin_country_id = countryId }, conn, true),
-              new { CountryId = countryId }, conn, _logger);
-           
-            return result;
-        }
+        //    return result;
+        //}
+
+        //public IList<Flight> GetFlightsByOriginCountry(int countryId)
+        //{
+        //    NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+        //    List<Flight> result = new List<Flight>();
+
+        //    result = Execute(() => Run_Generic_SP("sp_get_flights_by_origin_country", new { _origin_country_id = countryId }, conn, true),
+        //      new { CountryId = countryId }, conn, _logger);
+
+        //    return result;
+        //}
 
         public IDictionary<Flight, List<Ticket>> GetFlightsWithTicketsAfterLanding(long seconds_after_landing)
         {
@@ -285,13 +335,12 @@ namespace DAL
 
             Execute(() =>
             {
-                string procedure = "call sp_update_flight(@_id, @_airline_company_id, @_origin_country_id, @_destination_country_id, @_departure_time, @_landing_time, @_remaining_tickets)";
+                string procedure = "call sp_update_flight(@_id, @_origin_country_id, @_destination_country_id, @_departure_time, @_landing_time, @_remaining_tickets)";
 
                 NpgsqlCommand command = new NpgsqlCommand(procedure, conn);
                 command.Parameters.AddRange(new NpgsqlParameter[]
                 {
                     new NpgsqlParameter("@_id", flight.Id),
-                    new NpgsqlParameter("@_airline_company_id", flight.AirlineCompany.Id),
                     new NpgsqlParameter("@_origin_country_id", flight.OriginCountryId),
                     new NpgsqlParameter("@_destination_country_id", flight.DestinationCountryId),
                     new NpgsqlParameter("@_departure_time", flight.DepartureTime),

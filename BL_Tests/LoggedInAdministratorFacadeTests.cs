@@ -302,6 +302,7 @@ namespace BL_Tests
                 {
                     long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customers[i]);
                     Assert.AreEqual(customer_id, i + 1);
+                    Assert.AreEqual(demi_customers[i].User.Id, i + 1);
                     demi_customers[i].Id = customer_id;
                 }
 
@@ -335,23 +336,9 @@ namespace BL_Tests
 
                 long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
                 Assert.AreEqual(customer_id, 1);
+                Assert.AreEqual(demi_customer.User.Id, 1);
 
                 Assert.ThrowsException<RecordAlreadyExistsException>(() => administrator_facade.CreateNewCustomer(administrator_token, demi_customer_with_same_phone_number));
-            });
-        }
-
-        [TestMethod]
-        public void Create_Two_Customers_With_Same_Credit_Card()
-        {
-            Execute_Test(() =>
-            {
-                Customer demi_customer = TestData.Get_Customers_Data()[0];
-                Customer demi_customer_with_same_credit_card = TestData.Get_Customers_Data()[4];
-
-                long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
-                Assert.AreEqual(customer_id, 1);
-
-                Assert.ThrowsException<RecordAlreadyExistsException>(() => administrator_facade.CreateNewCustomer(administrator_token, demi_customer_with_same_credit_card), "");
             });
         }
 
@@ -454,29 +441,11 @@ namespace BL_Tests
                 demi_airline_company.Id = airline_company_id;
                 demi_airline_company.CountryId = 99;
 
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.UpdateAirlineDetails(administrator_token, demi_airline_company));
+                Assert.ThrowsException<RelatedRecordNotExistsException>(() => administrator_facade.UpdateAirlineDetails(administrator_token, demi_airline_company));
             });
         }
 
 
-        [TestMethod]
-        public void Update_Airline_With_UserId_That_Not_Exists()
-        {
-            Execute_Test(() =>
-            {
-                int country_id = administrator_facade.CreateNewCountry(administrator_token, TestData.Get_Countries_Data()[0]);
-
-                AirlineCompany demi_airline_company = TestData.Get_AirlineCompanies_Data()[0];
-
-                demi_airline_company.CountryId = country_id;
-                long airline_company_id = administrator_facade.CreateNewAirlineCompany(administrator_token, demi_airline_company);
-
-                demi_airline_company.Id = airline_company_id;
-                demi_airline_company.User.Id = 99;
-
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.UpdateAirlineDetails(administrator_token, demi_airline_company));
-            });
-        }
 
         [TestMethod]
         public void Update_Admin()
@@ -517,21 +486,7 @@ namespace BL_Tests
             });
         }
 
-        [TestMethod]
-        public void Update_Admin_With_UserId_That_Not_Exists()
-        {
-            Execute_Test(() =>
-            {
-                Administrator demi_admin = TestData.Get_Administrators_Data()[0];
 
-                int admin_id = administrator_facade.CreateNewAdmin(administrator_token, demi_admin);
-
-                demi_admin.Id = admin_id;
-                demi_admin.User.Id = 99;
-
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.UpdateAdminDetails(administrator_token, demi_admin));
-            });
-        }
 
         [TestMethod]
         public void Update_Customer()
@@ -556,20 +511,6 @@ namespace BL_Tests
             });
         }
 
-        [TestMethod]
-        public void Update_Customer_With_UserId_That_Not_Exists()
-        {
-            Execute_Test(() =>
-            {
-                Customer demi_customer = TestData.Get_Customers_Data()[0];
-
-                long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
-                demi_customer.Id = customer_id;
-                demi_customer.User.Id = 99;
-
-                Assert.ThrowsException<PostgresException>(() => administrator_facade.UpdateCustomerDetails(administrator_token, demi_customer));
-            });
-        }
 
         [TestMethod]
         public void Update_Country()
@@ -625,7 +566,7 @@ namespace BL_Tests
         }
 
         [TestMethod]
-        public void Remove_Country_Using_Level_One_Admin()
+        public void Remove_Country_Using_Level_One_Admin_Should_Throw_NotAllowedAdminActionException()
         {
             Init_Admin_Level_One_And_Login();
             Execute_Test(() =>
@@ -636,6 +577,18 @@ namespace BL_Tests
                 demi_country.Id = country_id;
 
                 Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_level_one_facade.RemoveCountry(administrator_level_one_token, demi_country));
+            });
+        }
+
+        [TestMethod]
+        public void Add_Country_Using_Level_Two_Admin_Should_Throw_NotAllowedAdminActionException()
+        {
+            Init_Admin_Level_One_And_Login();
+            Execute_Test(() =>
+            {
+                Country demi_country = TestData.Get_Countries_Data()[0];
+
+                Assert.ThrowsException<NotAllowedAdminActionException>(() => administrator_level_one_facade.CreateNewCountry(administrator_level_one_token, demi_country));
             });
         }
 
@@ -699,7 +652,7 @@ namespace BL_Tests
         }
 
         [TestMethod]
-        public void Remove_Customer_Using_Level_One_Admin()
+        public void Remove_Customer_Using_Level_One_Admin_Should_Throw_NotAllowedAdminActionException()
         {
             Init_Admin_Level_One_And_Login();
             Execute_Test(() =>
@@ -730,7 +683,7 @@ namespace BL_Tests
         }
 
         [TestMethod]
-        public void Remove_Admin_Using_Level_One_Admin()
+        public void Remove_Admin_Using_Level_One_Admin_Should_Throw_NotAllowedAdminActionException()
         {
             Init_Admin_Level_One_And_Login();
             Execute_Test(() =>
@@ -786,8 +739,7 @@ namespace BL_Tests
                 demi_flight.Id = flight_id;
 
                 Customer demi_customer = TestData.Get_Customers_Data()[0];
-                long customer_id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
-                demi_customer.Id = customer_id;
+                demi_customer.Id = administrator_facade.CreateNewCustomer(administrator_token, demi_customer);
 
                 system.TryLogin(demi_customer.User.UserName, demi_customer.User.Password, out ILoginToken token2, out FacadeBase facade2);
                 LoggedInCustomerFacade customerFacade = facade2 as LoggedInCustomerFacade;

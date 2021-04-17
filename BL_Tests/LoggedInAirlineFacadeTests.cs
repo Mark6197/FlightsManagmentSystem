@@ -18,7 +18,7 @@ namespace BL_Tests
     [TestClass]
     public class LoggedInAirlineFacadeTests
     {
-        private static readonly ILog _logger = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _logger = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly FlightCenterSystem system = FlightCenterSystem.GetInstance();
         private LoggedInAirlineFacade airline_facade;
         private LoginToken<AirlineCompany> airline_token;
@@ -54,9 +54,9 @@ namespace BL_Tests
             LoggedInAdministratorFacade loggedInAdministratorFacade = admin_facade as LoggedInAdministratorFacade;
             LoginToken<Administrator> adminLoginToken = admin_token as LoginToken<Administrator>;
             int country_id = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[0]);
-            int country_id2 = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[1]);
-            int country_id3 = loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[2]);
-            long customer_id = loggedInAdministratorFacade.CreateNewCustomer(adminLoginToken, TestData.Get_Customers_Data()[0]);
+            loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[1]);
+            loggedInAdministratorFacade.CreateNewCountry(adminLoginToken, TestData.Get_Countries_Data()[2]);
+            loggedInAdministratorFacade.CreateNewCustomer(adminLoginToken, TestData.Get_Customers_Data()[0]);
             AirlineCompany airlineCompany = TestData.Get_AirlineCompanies_Data()[0];
             airlineCompany.CountryId = country_id;
             loggedInAdministratorFacade.CreateNewAirlineCompany(adminLoginToken, airlineCompany);
@@ -189,37 +189,6 @@ namespace BL_Tests
 
                 Assert.AreEqual(airline_facade.GetAllTicketsByFlight(airline_token, demi_flight).Count, 0);
                 Assert.AreEqual(airline_facade.GetFlightHistoryByOriginalId(airline_token, demi_flight.Id).Id, 1);
-            });
-        }
-
-        [TestMethod]
-        public void Change_Password()
-        {
-            Execute_Test(() =>
-            {
-                string new_password = "new_pass";
-                airline_facade.ChangeMyPassword(airline_token, "elalelal", new_password);
-                AirlineCompany airlineCompany = airline_facade.GetAirlineCompanyById(airline_token.User.Id);
-                Assert.AreEqual(airlineCompany.User.Password, new_password);
-            });
-        }
-
-        [TestMethod]
-        public void Change_Password_With_Wrong_Old_Password()
-        {
-            Execute_Test(() =>
-            {
-                string new_password = "new_pass";
-                Assert.ThrowsException<WrongPasswordException>(() => airline_facade.ChangeMyPassword(airline_token, "wrongwrong", new_password));
-            });
-        }
-
-        [TestMethod]
-        public void Change_Password_With_Same_Password()
-        {
-            Execute_Test(() =>
-            {
-                Assert.ThrowsException<WrongPasswordException>(() => airline_facade.ChangeMyPassword(airline_token, "elalelal", "elalelal"));
             });
         }
 

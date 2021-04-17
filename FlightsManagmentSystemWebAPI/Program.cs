@@ -1,11 +1,9 @@
+using BL;
+using ConfigurationService;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FlightsManagmentSystemWebAPI
 {
@@ -21,6 +19,15 @@ namespace FlightsManagmentSystemWebAPI
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
+                }).ConfigureServices((hostContext, services) =>
+                {
+                    if (hostContext.HostingEnvironment.EnvironmentName == "Test")
+                        FlightsManagmentSystemConfig.Instance.Init("FlightsManagmentSystemTests.Config.json");
+                    else
+                        FlightsManagmentSystemConfig.Instance.Init();
+
+                    services.AddSingleton(FlightsManagmentSystemConfig.Instance);
+                    services.AddSingleton<IFlightCenterSystem>(FlightCenterSystem.GetInstance());
                 })
                 .ConfigureLogging(builder =>
                 {

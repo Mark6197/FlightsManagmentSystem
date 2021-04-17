@@ -6,5 +6,6 @@ namespace Domain.Interfaces
     {
         Customer GetCustomerByUserId(long user_id);
         Customer GetCustomerByUsername(string username);
+        Customer GetCustomerByPhone(string phone);
     }
 }

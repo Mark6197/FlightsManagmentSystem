@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Domain.Entities;
 using FlightsManagmentSystemWebAPI.Authentication;
 using FlightsManagmentSystemWebAPI.Controllers;
+using FlightsManagmentSystemWebAPI.Dtos;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -29,6 +30,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
         {
             _httpClient = _testHostFixture.Client;
             _serviceProvider = _testHostFixture.ServiceProvider;
+            TestsDAOPGSQL.ClearDB();
         }
 
         [TestMethod]
@@ -147,7 +149,37 @@ namespace FlightsManagmentSystemWebAPI_Tests
                 new StringContent(JsonSerializer.Serialize(refreshRequest), Encoding.UTF8, MediaTypeNames.Application.Json)); //Post expired RefreshTokenRequest to the contoller
             var responseContent = await response.Content.ReadAsStringAsync();//Get response content as json string
             Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);//The response code is 401 Unauthorized 
-            Assert.AreEqual("Invalid token", responseContent);//The response content should be Invalid token
+            Assert.AreEqual("Invalid token", JsonSerializer.Deserialize<string>(responseContent));//The response content should be Invalid token
+        }
+
+        [TestMethod]
+        public async Task ChangeMyPassword()
+        {
+            CreateCustomerDTO createCustomerDTO = await TestHelpers.Customer_Login(_httpClient);
+            var response = await _httpClient.PutAsync("api/account/change-password",
+            new StringContent(JsonSerializer.Serialize(new ChangePasswordRequest { OldPassword = createCustomerDTO.User.Password, NewPassword = "SomeNewPass" }), Encoding.UTF8, MediaTypeNames.Application.Json));
+
+            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task ChangeMyPassword_With_Old_Password_Should_Return_Bad_Request()
+        {
+            CreateCustomerDTO createCustomerDTO = await TestHelpers.Customer_Login(_httpClient);
+            var response = await _httpClient.PutAsync("api/account/change-password",
+            new StringContent(JsonSerializer.Serialize(new ChangePasswordRequest { OldPassword = createCustomerDTO.User.Password, NewPassword = createCustomerDTO.User.Password }), Encoding.UTF8, MediaTypeNames.Application.Json));
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task ChangeMyPassword_With_Incorrect_Password_Should_Return_Bad_Request()
+        {
+            CreateCustomerDTO createCustomerDTO = await TestHelpers.Customer_Login(_httpClient);
+            var response = await _httpClient.PutAsync("api/account/change-password",
+            new StringContent(JsonSerializer.Serialize(new ChangePasswordRequest { OldPassword = "SomeIncorrectPass", NewPassword = "SomeNewPass" }), Encoding.UTF8, MediaTypeNames.Application.Json));
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }

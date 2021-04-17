@@ -5,10 +5,7 @@ using Domain.Entities;
 using Domain.Interfaces;
 using log4net;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 
 namespace BL

@@ -1,9 +1,8 @@
 ﻿using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
-using DAL;
+using DAL.Exceptions;
 using Domain.Entities;
-using Npgsql;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -23,6 +22,8 @@ namespace BL
 
             result = Execute(() =>
             {
+                admin.User.UserRole = UserRoles.Administrator;
+
                 if (token.User.Level == AdminLevel.Junior_Admin || token.User.Level == AdminLevel.Mid_Level_Admin)
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to add other admin. Admin's level is {token.User.Level}");
 
@@ -47,6 +48,14 @@ namespace BL
 
             result = Execute(() =>
             {
+                airlineCompany.User.UserRole = UserRoles.Airline_Company;
+
+                if (_airlineDAO.GetAirlineCompanyByName(airlineCompany.Name) != null)
+                    throw new RecordAlreadyExistsException();
+
+                if (_countryDAO.Get(airlineCompany.CountryId) == null)
+                    throw new RelatedRecordNotExistsException();
+
                 long user_id = _userDAO.Add(airlineCompany.User);
 
                 airlineCompany.User.Id = user_id;
@@ -58,11 +67,19 @@ namespace BL
             return result;
         }
 
-        public int CreateNewCountry(LoginToken<Administrator> token, Country country)//maybe add validation only admin level 4+ can use it
+        public int CreateNewCountry(LoginToken<Administrator> token, Country country)
         {
             int result = 0;
 
-            result = Execute(() => (int)_countryDAO.Add(country), new { Token = token, Country = country }, _logger);
+            result = Execute(() =>
+            {
+                if (token.User.Level == AdminLevel.Junior_Admin || token.User.Level == AdminLevel.Mid_Level_Admin)
+                    throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to add countries. Admin's level is {token.User.Level}");
+
+                result = (int)_countryDAO.Add(country);
+
+                return result;
+            }, new { Token = token, Country = country }, _logger);
 
             return result;
         }
@@ -73,10 +90,17 @@ namespace BL
 
             result = Execute(() =>
             {
+                customer.User.UserRole = UserRoles.Customer;
+
+                if (_customerDAO.GetCustomerByPhone(customer.PhoneNumber) != null)
+                    throw new RecordAlreadyExistsException();
+
                 long user_id = _userDAO.Add(customer.User);
 
                 customer.User.Id = user_id;
-                result = _customerDAO.Add(customer);
+                long customer_id = _customerDAO.Add(customer);
+
+                result = customer_id;
 
                 return result;
             }, new { Token = token, Customer = customer }, _logger);
@@ -94,7 +118,6 @@ namespace BL
         }
 
         public IList<Administrator> GetAllAdministrators(LoginToken<Administrator> token)
-        //might want to validate that only admin level 3+ can get all admins or maybe admin level 2 will get all admins level 2-
         {
             IList<Administrator> result = null;
 
@@ -132,7 +155,7 @@ namespace BL
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} (level: {token.User.Level}) now allowed to remove the following admin: {admin.User.UserName} (level {admin.Level})");
 
                 _adminDAO.Remove(admin);
-                _userDAO.Remove(admin.User);//not sure if this is a proper behavior, wen adding and removing airline/customer/admin is also add or remove user but when editing it only edits the userid 
+                _userDAO.Remove(admin.User); 
             }, new { Token = token, Administrator = admin }, _logger);
         }
 
@@ -160,7 +183,7 @@ namespace BL
                     }
 
                 _airlineDAO.Remove(airlineCompany);
-                _userDAO.Remove(airlineCompany.User);//not sure if this is a proper behavior, wen adding and removing airline/customer/admin is also add or remove user but when editing it only edits the userid
+                _userDAO.Remove(airlineCompany.User);//not sure if this is a proper behavior, when adding and removing airline/customer/admin is also add or remove user but when editing it only edits the userid
             }, new { Token = token, AirlineCompany = airlineCompany }, _logger);
         }
 
@@ -168,7 +191,7 @@ namespace BL
         {
             Execute(() =>
             {
-                if (token.User.Level == AdminLevel.Junior_Admin)
+                if (token.User.Level == AdminLevel.Junior_Admin || token.User.Level == AdminLevel.Mid_Level_Admin)
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to remove countries. Admin's level is {token.User.Level}");
 
                 _countryDAO.Remove(country);
@@ -194,7 +217,7 @@ namespace BL
                     }
 
                 _customerDAO.Remove(customer);
-                _userDAO.Remove(customer.User);//not sure if this is a proper behavior, wen adding and removing airline/customer/admin is also add or remove user but when editing it only edits the userid
+                _userDAO.Remove(customer.User);
 
             }, new { Token = token, Customer = customer }, _logger);
         }

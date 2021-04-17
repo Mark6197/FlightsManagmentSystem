@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Net.Http;
+using BL;
+using ConfigurationService;
 using FlightsManagmentSystemWebAPI;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace FlightsManagmentSystemWebAPI_Tests
@@ -22,11 +25,19 @@ namespace FlightsManagmentSystemWebAPI_Tests
                 {
                     webHost.UseTestServer();
                     webHost.UseEnvironment("Test");
-                });
+                })
+                //.ConfigureServices((hostContext, services) =>
+                //{
+                //    FlightsManagmentSystemConfig.Instance.Init("FlightsManagmentSystemTests.Config.json");
+
+                //    services.AddSingleton(FlightsManagmentSystemConfig.Instance);
+                //    services.AddSingleton<IFlightCenterSystem>(FlightCenterSystem.GetInstance());
+                //})
+                ;
             var host = builder.Start();//Start the host
             ServiceProvider = host.Services;//Get the services from the host
             Client = host.GetTestClient();//Get the test client from the host
-            Console.WriteLine("TEST Host Started.");
+            //Console.WriteLine("TEST Host Started.");
         }
 
         public void Dispose()

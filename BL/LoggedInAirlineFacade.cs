@@ -1,7 +1,6 @@
 ﻿using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
-using DAL;
 using Domain.Entities;
 using System.Collections.Generic;
 using System.Reflection;
@@ -34,23 +33,6 @@ namespace BL
                 _flightsTicketsHistoryDAO.Add(flight, FlightStatus.Cancelled_By_Company);
                 _flightDAO.Remove(flight);
             }, new { Token = token, Flight = flight }, _logger);
-        }
-
-        public void ChangeMyPassword(LoginToken<AirlineCompany> token, string oldPassword, string newPassword)
-        {
-            Execute(() =>
-            {
-                if (token.User.User.Password != oldPassword)
-                    throw new WrongPasswordException($"User {token.User.User.UserName} tried to update password with wrong old password");
-
-                if (oldPassword == newPassword)
-                    throw new WrongPasswordException($"User {token.User.User.UserName} haven't been able to update the password- entered same new password");
-
-                User user = token.User.User;
-                user.Password = newPassword;
-
-                _userDAO.Update(user);
-            }, new { Token = token, OldPassword = oldPassword, NewPassword = newPassword }, _logger);
         }
 
         public long CreateFlight(LoginToken<AirlineCompany> token, Flight flight)

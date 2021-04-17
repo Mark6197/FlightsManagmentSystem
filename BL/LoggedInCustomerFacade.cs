@@ -1,8 +1,8 @@
 ﻿using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
-using DAL;
 using Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -97,7 +97,10 @@ namespace BL
                 Flight flight_from_db = _flightDAO.Get(flight.Id);
 
                 if (flight_from_db.RemainingTickets <= 0)//If there are no tickets left throw exception
-                    throw new TicketPurchaseFailedException($"User {token.User.User.UserName} failed to purchase ticket to flight {flight.Id}. No tickets left");
+                    throw new TicketPurchaseFailedException($"User {token.User.User.UserName} failed to purchase ticket to flight {flight.Id}. No tickets left",PurchaseFailReason.No_Tickets_Left);
+
+                if (flight_from_db.DepartureTime <= DateTime.Now.AddMinutes(15))//If there are no tickets left throw exception
+                    throw new TicketPurchaseFailedException($"User {token.User.User.UserName} failed to purchase ticket to flight {flight.Id}. No tickets left", PurchaseFailReason.Flight_Took_Off);
 
                 //maybe add this to the procedure of add ticket
                 flight_from_db.RemainingTickets--;//Remove one ticket from the remaining tickets

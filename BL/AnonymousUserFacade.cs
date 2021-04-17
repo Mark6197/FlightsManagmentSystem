@@ -1,14 +1,7 @@
 ﻿using BL.Interfaces;
-using DAL;
 using Domain.Entities;
-using Domain.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Net.Sockets;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace BL
 {
@@ -58,6 +51,15 @@ namespace BL
             return result;
         }
 
+        public IList<Flight> SearchFlights(int originCountryId = 0, int destinationCountryId = 0, DateTime? departureDate = null, DateTime? landingDate = null)
+        {
+            IList<Flight> result = null;
+
+            result = Execute(() => _flightDAO.Search(originCountryId, destinationCountryId, departureDate, landingDate), new { }, _logger);
+
+            return result;
+        }
+
         public Dictionary<Flight, int> GetAllFlightsVacancy()
         {
             Dictionary<Flight, int> result = null;
@@ -85,40 +87,40 @@ namespace BL
             return result;
         }
 
-        public IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate)
-        {
-            IList<Flight> result = null;
+        //public IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate)
+        //{
+        //    IList<Flight> result = null;
 
-            result = Execute(() => _flightDAO.GetFlightsByDepatrureDate(departureDate), new { DepartureDate = departureDate }, _logger);
+        //    result = Execute(() => _flightDAO.GetFlightsByDepatrureDate(departureDate), new { DepartureDate = departureDate }, _logger);
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public IList<Flight> GetFlightsByDestinationCountry(int countryId)
-        {
-            IList<Flight> result = null;
+        //public IList<Flight> GetFlightsByDestinationCountry(int countryId)
+        //{
+        //    IList<Flight> result = null;
 
-            result = Execute(() => _flightDAO.GetFlightsByDestinationCountry(countryId), new { CountryId = countryId }, _logger);
+        //    result = Execute(() => _flightDAO.GetFlightsByDestinationCountry(countryId), new { CountryId = countryId }, _logger);
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public IList<Flight> GetFlightsByLandingDate(DateTime landingDate)
-        {
-            IList<Flight> result = null;
+        //public IList<Flight> GetFlightsByLandingDate(DateTime landingDate)
+        //{
+        //    IList<Flight> result = null;
 
-            result = Execute(() => _flightDAO.GetFlightsByLandingDate(landingDate), new { LandingDate = landingDate }, _logger);
+        //    result = Execute(() => _flightDAO.GetFlightsByLandingDate(landingDate), new { LandingDate = landingDate }, _logger);
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        public IList<Flight> GetFlightsByOriginCountry(int countryId)
-        {
-            IList<Flight> result = null;
+        //public IList<Flight> GetFlightsByOriginCountry(int countryId)
+        //{
+        //    IList<Flight> result = null;
 
-            result = Execute(() => _flightDAO.GetFlightsByOriginCountry(countryId), new { CountryId = countryId }, _logger);
+        //    result = Execute(() => _flightDAO.GetFlightsByOriginCountry(countryId), new { CountryId = countryId }, _logger);
 
-            return result;
-        }
+        //    return result;
+        //}
     }
 }
