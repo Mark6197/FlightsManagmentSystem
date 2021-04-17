@@ -60,9 +60,6 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         [AllowAnonymous]
         public ActionResult<LoginResult> Login([FromBody] LoginRequest request)
         {
-            if (!ModelState.IsValid)//maybe it's not neccessary
-                return BadRequest();
-
             if (!_flightCenterSystem.TryLogin(request.UserName, request.Password, out ILoginToken loginToken, out FacadeBase facade))//validate the login credentials
                 return Unauthorized();
 

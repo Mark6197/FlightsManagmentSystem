@@ -1,4 +1,5 @@
 using FlightsManagmentSystemWebAPI.Authentication;
+using FlightsManagmentSystemWebAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -31,8 +32,7 @@ namespace FlightsManagmentSystemWebAPI
                 .ConfigureApiBehaviorOptions(options =>
             {
                 options.SuppressMapClientErrors = true;//Removes the ProblemDetails body generated for ststus code of 400+
-            })
-                ;
+            });
 
 
             var jwtTokenConfig = Configuration.GetSection("jwtTokenConfig").Get<JwtTokenConfig>();//read the values required to configure the jet token from the configuration file
@@ -88,6 +88,13 @@ namespace FlightsManagmentSystemWebAPI
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
+            services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
+            {
+                builder.AllowAnyOrigin()
+                       .AllowAnyMethod()
+                       .AllowAnyHeader();
+            }));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -103,6 +110,10 @@ namespace FlightsManagmentSystemWebAPI
                     c.DocumentTitle = "Flights Managment System API";
                 });
             }
+
+            app.UseCors("CorsPolicy");
+
+            app.UseMiddleware<RequestResponseLoggingMiddleware>();
 
             app.UseHttpsRedirection();
 
