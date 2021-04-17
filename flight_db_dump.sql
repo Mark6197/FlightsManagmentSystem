@@ -279,6 +279,24 @@ $$;
 ALTER FUNCTION public.sp_get_airline_company(_id bigint) OWNER TO postgres;
 
 --
+-- Name: sp_get_airline_company_by_name(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_airline_company_by_name(_name text) RETURNS TABLE(airline_company_id bigint, airline_company_name text, airline_company_country_id integer, user_id bigint, username text, password text, email text, user_role_id integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+                RETURN QUERY
+                    select a.id, a.name, a.country_id, u.id, u.username, u.password, u.email, u.user_role  from airline_companies a
+                    join users u on u.id = a.user_id
+                    where a.name =_name;
+            END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_airline_company_by_name(_name text) OWNER TO postgres;
+
+--
 -- Name: sp_get_airline_company_by_user_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -488,6 +506,24 @@ CREATE FUNCTION public.sp_get_customer(_id bigint) RETURNS TABLE(customer_id big
 ALTER FUNCTION public.sp_get_customer(_id bigint) OWNER TO postgres;
 
 --
+-- Name: sp_get_customer_by_phone_number(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_customer_by_phone_number(_phone_number text) RETURNS TABLE(customer_id bigint, first_name text, last_name text, address text, phone_number text, credit_card_number text, user_id bigint, username text, password text, email text, user_role_id integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+                RETURN QUERY
+                    select c.id, c.first_name, c.last_name, c.address, c.phone_number, c.credit_card_number, u.id, u.username, u.password, u.email, u.user_role  from customers c
+                    join users u on u.id = c.user_id
+                    where c.phone_number =_phone_number;
+            END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_customer_by_phone_number(_phone_number text) OWNER TO postgres;
+
+--
 -- Name: sp_get_customer_by_user_id(bigint); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -512,13 +548,13 @@ ALTER FUNCTION public.sp_get_customer_by_user_id(_user_id bigint) OWNER TO postg
 CREATE FUNCTION public.sp_get_customer_by_username(_username text) RETURNS TABLE(customer_id bigint, first_name text, last_name text, address text, phone_number text, credit_card_number text, user_id bigint, username text, password text, email text, user_role_id integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 RETURN QUERY
-                    select a.id, a.first_name, a.last_name, a.address, a.phone_number, a.credit_card_number, u.id, u.username, u.password, u.email, u.user_role  from customers a
-                    join users u on u.id = a.user_id
+                    select c.id, c.first_name, c.last_name, c.address, c.phone_number, c.credit_card_number, u.id, u.username, u.password, u.email, u.user_role  from customers c
+                    join users u on u.id = c.user_id
                     where u.username =_username;
             END;
-    $$;
+$$;
 
 
 ALTER FUNCTION public.sp_get_customer_by_username(_username text) OWNER TO postgres;
@@ -841,6 +877,23 @@ CREATE FUNCTION public.sp_get_user(_id integer) RETURNS TABLE(id bigint, usernam
 ALTER FUNCTION public.sp_get_user(_id integer) OWNER TO postgres;
 
 --
+-- Name: sp_get_user_by_username(text); Type: FUNCTION; Schema: public; Owner: postgres
+--
+
+CREATE FUNCTION public.sp_get_user_by_username(_username text) RETURNS TABLE(user_id bigint, username text, password text, email text, user_role_id integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+                RETURN QUERY
+                    select * from users u
+                    where u.username =_username;
+            END;
+$$;
+
+
+ALTER FUNCTION public.sp_get_user_by_username(_username text) OWNER TO postgres;
+
+--
 -- Name: sp_get_user_by_username_and_password(text, text); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
@@ -963,38 +1016,59 @@ CREATE PROCEDURE public.sp_remove_user(_id bigint)
 ALTER PROCEDURE public.sp_remove_user(_id bigint) OWNER TO postgres;
 
 --
--- Name: sp_update_administrator(integer, text, text, integer, bigint); Type: PROCEDURE; Schema: public; Owner: postgres
+-- Name: sp_search_flights(integer, integer, date, date); Type: FUNCTION; Schema: public; Owner: postgres
 --
 
-CREATE PROCEDURE public.sp_update_administrator(_id integer, _first_name text, _last_name text, _level integer, _user_id bigint)
+CREATE FUNCTION public.sp_search_flights(_origin_country_id integer DEFAULT 0, _destination_country_id integer DEFAULT 0, _departure_date date DEFAULT NULL::date, _landing_date date DEFAULT NULL::date) RETURNS TABLE(flight_id bigint, airline_company_id bigint, airline_company_name text, airline_company_country_id integer, origin_country_id integer, destination_country_id integer, departure_time timestamp without time zone, landing_time timestamp without time zone, remaining_tickets integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
+                RETURN QUERY
+                    select f.id, a.id,a.name,a.country_id, f.origin_country_id, f.destination_country_id, f.departure_time, f.landing_time, f.remaining_tickets  from flights f
+                    join airline_companies a on a.id = f.airline_company_id
+					where (_origin_country_id = 0 or f.origin_country_id = _origin_country_id) AND
+						  (_destination_country_id = 0 or f.destination_country_id = _destination_country_id) AND
+						  (_departure_date IS NULL or f.departure_time:: date = _departure_date) AND
+						  (_landing_date IS NULL or f.landing_time:: date = _landing_date);
+                END;
+$$;
+
+
+ALTER FUNCTION public.sp_search_flights(_origin_country_id integer, _destination_country_id integer, _departure_date date, _landing_date date) OWNER TO postgres;
+
+--
+-- Name: sp_update_administrator(integer, text, text, integer); Type: PROCEDURE; Schema: public; Owner: postgres
+--
+
+CREATE PROCEDURE public.sp_update_administrator(_id integer, _first_name text, _last_name text, _level integer)
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
                 UPDATE administrators
-                SET first_name=_first_name, last_name=_last_name, level=_level, user_id=_user_id
+                SET first_name=_first_name, last_name=_last_name, level=_level
                 WHERE id=_id;
             END;
-    $$;
+$$;
 
 
-ALTER PROCEDURE public.sp_update_administrator(_id integer, _first_name text, _last_name text, _level integer, _user_id bigint) OWNER TO postgres;
+ALTER PROCEDURE public.sp_update_administrator(_id integer, _first_name text, _last_name text, _level integer) OWNER TO postgres;
 
 --
--- Name: sp_update_airline_company(bigint, text, integer, bigint); Type: PROCEDURE; Schema: public; Owner: postgres
+-- Name: sp_update_airline_company(bigint, text, integer); Type: PROCEDURE; Schema: public; Owner: postgres
 --
 
-CREATE PROCEDURE public.sp_update_airline_company(_id bigint, _name text, _country_id integer, _user_id bigint)
+CREATE PROCEDURE public.sp_update_airline_company(_id bigint, _name text, _country_id integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 UPDATE airline_companies
-                SET name=_name, country_id=_country_id, user_id=_user_id
+                SET name=_name, country_id=_country_id
                 WHERE id=_id;
             END;
-    $$;
+$$;
 
 
-ALTER PROCEDURE public.sp_update_airline_company(_id bigint, _name text, _country_id integer, _user_id bigint) OWNER TO postgres;
+ALTER PROCEDURE public.sp_update_airline_company(_id bigint, _name text, _country_id integer) OWNER TO postgres;
 
 --
 -- Name: sp_update_country(integer, text); Type: PROCEDURE; Schema: public; Owner: postgres
@@ -1014,38 +1088,38 @@ CREATE PROCEDURE public.sp_update_country(_id integer, _name text)
 ALTER PROCEDURE public.sp_update_country(_id integer, _name text) OWNER TO postgres;
 
 --
--- Name: sp_update_customer(bigint, text, text, text, text, text, bigint); Type: PROCEDURE; Schema: public; Owner: postgres
+-- Name: sp_update_customer(bigint, text, text, text, text, text); Type: PROCEDURE; Schema: public; Owner: postgres
 --
 
-CREATE PROCEDURE public.sp_update_customer(_id bigint, _first_name text, _last_name text, _address text, _phone_number text, _credit_card_number text, _user_id bigint)
+CREATE PROCEDURE public.sp_update_customer(_id bigint, _first_name text, _last_name text, _address text, _phone_number text, _credit_card_number text)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 UPDATE customers
-                SET first_name=_first_name, last_name=_last_name, address=_address, phone_number=_phone_number,credit_card_number=_credit_card_number, user_id=_user_id
+                SET first_name=_first_name, last_name=_last_name, address=_address, phone_number=_phone_number,credit_card_number=_credit_card_number
                 WHERE id=_id;
             END;
-    $$;
+$$;
 
 
-ALTER PROCEDURE public.sp_update_customer(_id bigint, _first_name text, _last_name text, _address text, _phone_number text, _credit_card_number text, _user_id bigint) OWNER TO postgres;
+ALTER PROCEDURE public.sp_update_customer(_id bigint, _first_name text, _last_name text, _address text, _phone_number text, _credit_card_number text) OWNER TO postgres;
 
 --
--- Name: sp_update_flight(bigint, bigint, integer, integer, timestamp without time zone, timestamp without time zone, integer); Type: PROCEDURE; Schema: public; Owner: postgres
+-- Name: sp_update_flight(bigint, integer, integer, timestamp without time zone, timestamp without time zone, integer); Type: PROCEDURE; Schema: public; Owner: postgres
 --
 
-CREATE PROCEDURE public.sp_update_flight(_id bigint, _airline_company_id bigint, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer)
+CREATE PROCEDURE public.sp_update_flight(_id bigint, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer)
     LANGUAGE plpgsql
     AS $$
-            BEGIN
+BEGIN
                 UPDATE flights
-                SET airline_company_id=_airline_company_id, origin_country_id=_origin_country_id, destination_country_id=_destination_country_id, departure_time=_departure_time,landing_time=_landing_time, remaining_tickets=_remaining_tickets
+                SET origin_country_id=_origin_country_id, destination_country_id=_destination_country_id, departure_time=_departure_time,landing_time=_landing_time, remaining_tickets=_remaining_tickets
                 WHERE id=_id;
             END;
-    $$;
+$$;
 
 
-ALTER PROCEDURE public.sp_update_flight(_id bigint, _airline_company_id bigint, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer) OWNER TO postgres;
+ALTER PROCEDURE public.sp_update_flight(_id bigint, _origin_country_id integer, _destination_country_id integer, _departure_time timestamp without time zone, _landing_time timestamp without time zone, _remaining_tickets integer) OWNER TO postgres;
 
 --
 -- Name: sp_update_ticket(bigint, bigint, bigint); Type: PROCEDURE; Schema: public; Owner: postgres
@@ -1758,13 +1832,6 @@ CREATE UNIQUE INDEX airline_companies_name_uindex ON public.airline_companies US
 --
 
 CREATE UNIQUE INDEX airline_companies_user_id_uindex ON public.airline_companies USING btree (user_id);
-
-
---
--- Name: costumers_credit_card_number_uindex; Type: INDEX; Schema: public; Owner: postgres
---
-
-CREATE UNIQUE INDEX costumers_credit_card_number_uindex ON public.customers USING btree (credit_card_number);
 
 
 --
