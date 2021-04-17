@@ -35,8 +35,7 @@ namespace FlightsManagmentSystemWebAPI.Middlewares
             await using var requestStream = _recyclableMemoryStreamManager.GetStream();//Create new memory stream
             await context.Request.Body.CopyToAsync(requestStream);//Read the body from the request
             _logger.LogInformation($"Http Request Information:{Environment.NewLine}" +
-                                   $"Schema:{context.Request.Scheme} " +
-                                   $"Host: {context.Request.Host} " +
+                                   $"Method Type: {context.Request.Method} " +
                                    $"Path: {context.Request.Path} " +
                                    $"QueryString: {context.Request.QueryString} " +
                                    $"Username: {context.User.Identity.Name} " +
@@ -55,8 +54,7 @@ namespace FlightsManagmentSystemWebAPI.Middlewares
             var text = await new StreamReader(context.Response.Body).ReadToEndAsync();
             context.Response.Body.Seek(0, SeekOrigin.Begin);
             _logger.LogInformation($"Http Response Information:{Environment.NewLine}" +
-                                   $"Schema:{context.Request.Scheme} " +
-                                   $"Host: {context.Request.Host} " +
+                                   $"Method Type: {context.Request.Method} " +
                                    $"Path: {context.Request.Path} " +
                                    $"QueryString: {context.Request.QueryString} " +
                                    $"Username: {context.User.Identity.Name} " +
