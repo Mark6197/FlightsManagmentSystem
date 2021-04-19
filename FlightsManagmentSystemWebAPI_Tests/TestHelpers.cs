@@ -116,7 +116,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, loginResult.AccessToken);//Set the Jwt access token in the request header
         }
 
-        internal static async Task<CreateAirlineCompanyDTO> Airline_Company_Login(HttpClient httpClient, CreateAirlineCompanyDTO createAirlineCompanyDTO = null, bool create_airline = true)
+        internal static async Task Airline_Company_Login(HttpClient httpClient, CreateAirlineCompanyDTO createAirlineCompanyDTO = null, bool create_airline = true)
         {
             if (createAirlineCompanyDTO == null)
             {
@@ -152,8 +152,6 @@ namespace FlightsManagmentSystemWebAPI_Tests
             var loginResult = JsonSerializer.Deserialize<LoginResult>(loginResponseContent);//Desirialize the json string back to LoginResult
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(JwtBearerDefaults.AuthenticationScheme, loginResult.AccessToken);//Set the Jwt access token in the request header
-
-            return createAirlineCompanyDTO;
         }
 
         internal static void CompareProps(object object_a, object object_b, bool ignore_user = false)

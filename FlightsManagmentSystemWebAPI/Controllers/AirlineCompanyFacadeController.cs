@@ -38,18 +38,13 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         /// Get list of all the tickets belonging to the logged-in airline company
         /// </summary>
         /// <returns>List of all the tickets</returns>
-        /// <param name="companyName">The name of the airline company</param>
         /// <response code="200">Returns the list of tickets</response>
         /// <response code="204">If the list of tickets is empty</response> 
         /// <response code="401">If the user is not authenticated as airline company</response> 
-        /// <response code="403">If airline company name in the url is different than the logged in airline name</response> 
-        [HttpGet("{companyName}/Tickets")]//not sure if companyName necessary maybe add ? so it can be optional
-        public ActionResult<IList<TicketDetailsDTO>> GetAllTickets(string companyName)
+        [HttpGet("Airline-Company/Tickets")]
+        public ActionResult<IList<TicketDetailsDTO>> GetAllTickets()
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
-
-            if (companyName != airline_token.User.Name)
-                return Forbid();//might use unauthorized
 
             IList<Ticket> tickets = _loggedInAirlineFacade.GetAllTickets(airline_token);
             if (tickets.Count == 0)
@@ -66,36 +61,25 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         /// Get list of all the tickets belonging to the logged-in airline company
         /// </summary>
         /// <returns>List of all the tickets</returns>
-        /// <param name="companyName">The name of the airline company</param>
         /// <param name="flight_id">The id of the flight</param>
         /// <response code="200">Returns the list of tickets</response>
         /// <response code="204">If the list of tickets is empty</response> 
         /// <response code="401">If the user is not authenticated as airline company</response> 
-        /// <response code="403">If airline company name in the url is different than the logged in airline name</response> 
         /// <response code="404">If the flight is not found</response> 
-        [HttpGet("{companyName}/Flights/{flight_id}/Tickets")]
-        public ActionResult<IList<TicketDetailsDTO>> GetAllTicketsByFlight(string companyName, long flight_id)
+        [HttpGet("Airline-Company/Flights/{flight_id}/Tickets")]
+        public ActionResult<IList<TicketDetailsDTO>> GetAllTicketsByFlight(long flight_id)
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
-            IList<Ticket> tickets = null;
-
-            if (companyName != airline_token.User.Name)
-                return Forbid();//might use unauthorized
+            IList<Ticket> tickets;
 
             Flight flight = _loggedInAirlineFacade.GetFlightById(flight_id);
             if (flight == null)
                 return NotFound();
 
-            try
-            {
-                tickets = _loggedInAirlineFacade.GetAllTicketsByFlight(airline_token, flight);
-                if (tickets.Count == 0)
-                    return NoContent();
-            }
-            catch (NotAllowedAirlineActionException)
-            {
-                return Forbid();
-            }
+            tickets = _loggedInAirlineFacade.GetAllTicketsByFlight(airline_token, flight);
+            if (tickets.Count == 0)
+                return NoContent();
+
 
             List<TicketDetailsDTO> ticketDetailsDTOs = new List<TicketDetailsDTO>();
             foreach (var ticket in tickets)
@@ -111,14 +95,10 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         /// <response code="200">Returns the list of flights</response>
         /// <response code="204">If the list of flights is empty</response> 
         /// <response code="401">If the user is not authenticated as airline company</response> 
-        /// <response code="403">If airline company name in the url is different than the logged in airline name</response> 
-        [HttpGet("{companyName}/Flights")]
-        public ActionResult<IList<FlightDetailsDTO>> GetAllFlights(string companyName)
+        [HttpGet("Airline-Company/Flights")]
+        public ActionResult<IList<FlightDetailsDTO>> GetAllFlights()
         {
             LoginToken<AirlineCompany> airline_token = DesirializeToken();
-
-            if (companyName != airline_token.User.Name)
-                return Forbid();
 
             IList<Flight> flights = _loggedInAirlineFacade.GetAllFlights(airline_token);
             if (flights.Count == 0)

@@ -44,14 +44,10 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         /// <response code="200">Returns the list of flights</response>
         /// <response code="204">If the list of flights is empty</response> 
         /// <response code="401">If the user is not authenticated as customer</response> 
-        /// <response code="403">If customer username in the query is different than the logged in customer username</response> 
-        [HttpGet("Flights/Customer")]
-        public ActionResult<FlightDetailsDTO> GetAllMyFlights([Required, FromQuery(Name = "username")] string username)
+        [HttpGet("Customer/Flights")]
+        public ActionResult<FlightDetailsDTO> GetAllMyFlights()
         {
             LoginToken<Customer> customer_token = DesirializeToken();
-
-            if (customer_token.User.User.UserName != username)
-                return Forbid();
 
             IList<Flight> flights = _loggedInCustomerFacade.GetAllMyFlights(customer_token);
             if (flights.Count == 0)
@@ -71,14 +67,10 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         /// <response code="200">Returns the list of tickets</response>
         /// <response code="204">If the list of tickets is empty</response> 
         /// <response code="401">If the user is not authenticated as customer</response> 
-        /// <response code="403">If customer username in the query is different than the logged in customer username</response> 
-        [HttpGet("Tickets/Customer")]
-        public ActionResult<TicketDetailsDTO> GetAllMyTickets([Required, FromQuery] string username)
+        [HttpGet("Customer/Tickets")]
+        public ActionResult<TicketDetailsDTO> GetAllMyTickets()
         {
             LoginToken<Customer> customer_token = DesirializeToken();
-
-            if (customer_token.User.User.UserName != username)
-                return Forbid();
 
             IList<Ticket> tickets = _loggedInCustomerFacade.GetAllMyTickets(customer_token);
             if (tickets.Count == 0)

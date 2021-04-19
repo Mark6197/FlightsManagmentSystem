@@ -212,15 +212,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
             await _httpClient.PostAsync("api/tickets",
                 new StringContent(JsonSerializer.Serialize(flight_id), Encoding.UTF8, MediaTypeNames.Application.Json));
 
-            var builder = new UriBuilder();
-            builder.Path = "api/tickets/customer";
-            builder.Port = -1;
-            var query = HttpUtility.ParseQueryString(builder.Query);
-            query["username"] = createCustomerDTO.User.UserName;
-            builder.Query = query.ToString();
-            string url = builder.ToString();
-
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync("api/customer/tickets");
             var responseContent = await response.Content.ReadAsStringAsync();
             List<FlightDetailsDTO> ticketsResult = JsonSerializer.Deserialize<List<FlightDetailsDTO>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -253,15 +245,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
             await _httpClient.PostAsync("api/tickets",
                 new StringContent(JsonSerializer.Serialize(flight_id), Encoding.UTF8, MediaTypeNames.Application.Json));
 
-            var builder = new UriBuilder();
-            builder.Path = "api/flights/customer";
-            builder.Port = -1;
-            var query = HttpUtility.ParseQueryString(builder.Query);
-            query["username"] = createCustomerDTO.User.UserName;
-            builder.Query = query.ToString();
-            string url = builder.ToString();
-
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync("api/customer/flights");
             var responseContent = await response.Content.ReadAsStringAsync();
             List<Flight> flightsResult = JsonSerializer.Deserialize<List<Flight>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
@@ -273,15 +257,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
         {
             CreateCustomerDTO createCustomerDTO = await TestHelpers.Customer_Login(_httpClient);
 
-            var builder = new UriBuilder();
-            builder.Path = "api/flights/customer";
-            builder.Port = -1;
-            var query = HttpUtility.ParseQueryString(builder.Query);
-            query["username"] = createCustomerDTO.User.UserName;
-            builder.Query = query.ToString();
-            string url = builder.ToString();
-
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync("api/customer/flights");
 
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
@@ -291,15 +267,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
         {
             CreateCustomerDTO createCustomerDTO = await TestHelpers.Customer_Login(_httpClient);
 
-            var builder = new UriBuilder();
-            builder.Path = "api/tickets/customer";
-            builder.Port = -1;
-            var query = HttpUtility.ParseQueryString(builder.Query);
-            query["username"] = createCustomerDTO.User.UserName;
-            builder.Query = query.ToString();
-            string url = builder.ToString();
-
-            var response = await _httpClient.GetAsync(url);
+            var response = await _httpClient.GetAsync("api/customer/tickets");
 
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }

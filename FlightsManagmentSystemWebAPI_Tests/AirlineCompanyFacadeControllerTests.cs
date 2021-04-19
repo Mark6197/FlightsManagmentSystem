@@ -143,7 +143,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
         [TestMethod]
         public async Task Get_List_Of_Flights()
         {
-            CreateAirlineCompanyDTO createAirlineCompanyDTO = await TestHelpers.Airline_Company_Login(_httpClient);
+            await TestHelpers.Airline_Company_Login(_httpClient);
 
             CreateFlightDTO createFlightDTO = new CreateFlightDTO
             {
@@ -169,7 +169,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
             List<FlightDetailsDTO> flightsListResult = JsonSerializer.Deserialize<List<FlightDetailsDTO>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             Assert.AreEqual(flightsListResult.Count, 3);
 
-            var response2 = await _httpClient.GetAsync($"api/{createAirlineCompanyDTO.Name}/flights");
+            var response2 = await _httpClient.GetAsync($"api/airline-company/flights");
 
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
@@ -181,13 +181,13 @@ namespace FlightsManagmentSystemWebAPI_Tests
         [TestMethod]
         public async Task Get_Empty_List_Of_Flights_Should_Return_No_Content()
         {
-            CreateAirlineCompanyDTO createAirlineCompanyDTO = await TestHelpers.Airline_Company_Login(_httpClient);
+            await TestHelpers.Airline_Company_Login(_httpClient);
 
             var response = await _httpClient.GetAsync("api/flights");
 
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
 
-            var response2 = await _httpClient.GetAsync($"api/{createAirlineCompanyDTO.Name}/flights");
+            var response2 = await _httpClient.GetAsync($"api/airline-company/flights");
 
             Assert.AreEqual(HttpStatusCode.NoContent, response2.StatusCode);
         }
@@ -654,9 +654,9 @@ namespace FlightsManagmentSystemWebAPI_Tests
             await _httpClient.PostAsync("api/tickets",
             new StringContent(JsonSerializer.Serialize(flight_id), Encoding.UTF8, MediaTypeNames.Application.Json));
 
-            CreateAirlineCompanyDTO createAirlineCompanyDTO = await TestHelpers.Airline_Company_Login(_httpClient, create_airline: false);
+            await TestHelpers.Airline_Company_Login(_httpClient, create_airline: false);
 
-            var response = await _httpClient.GetAsync($"api/{createAirlineCompanyDTO.Name}/flights/{flight_id}/tickets");
+            var response = await _httpClient.GetAsync($"api/airline-company/flights/{flight_id}/tickets");
             var responseContent = await response.Content.ReadAsStringAsync();
             List<TicketDetailsDTO> ticketsResult = JsonSerializer.Deserialize<List<TicketDetailsDTO>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             Assert.AreEqual(ticketsResult.Count, 2);
@@ -665,7 +665,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
         [TestMethod]
         public async Task Get_All_Tickets_By_Flight_That_has_No_Tickets_Should_Return_No_Content()
         {
-            CreateAirlineCompanyDTO createAirlineCompanyDTO = await TestHelpers.Airline_Company_Login(_httpClient);
+            await TestHelpers.Airline_Company_Login(_httpClient);
 
             CreateFlightDTO createFlightDTO = new CreateFlightDTO
             {
@@ -678,7 +678,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
             await _httpClient.PostAsync("api/flights",
              new StringContent(JsonSerializer.Serialize(createFlightDTO), Encoding.UTF8, MediaTypeNames.Application.Json));
 
-            var response = await _httpClient.GetAsync($"api/{createAirlineCompanyDTO.Name}/flights/1/tickets");
+            var response = await _httpClient.GetAsync($"api/airline-company/flights/1/tickets");
 
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
@@ -686,9 +686,9 @@ namespace FlightsManagmentSystemWebAPI_Tests
         [TestMethod]
         public async Task Get_All_Tickets_By_Flight_That_Not_Exists_Should_Return_Not_Found()
         {
-            CreateAirlineCompanyDTO createAirlineCompanyDTO = await TestHelpers.Airline_Company_Login(_httpClient);
+            await TestHelpers.Airline_Company_Login(_httpClient);
 
-            var response = await _httpClient.GetAsync($"api/{createAirlineCompanyDTO.Name}/flights/1/tickets");
+            var response = await _httpClient.GetAsync($"api/airline-company/flights/1/tickets");
 
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -696,9 +696,9 @@ namespace FlightsManagmentSystemWebAPI_Tests
         [TestMethod]
         public async Task Get_All_Tickets_By_Airline_That_has_No_Tickets_Should_Return_No_Content()
         {
-            CreateAirlineCompanyDTO createAirlineCompanyDTO = await TestHelpers.Airline_Company_Login(_httpClient);
+            await TestHelpers.Airline_Company_Login(_httpClient);
 
-            var response = await _httpClient.GetAsync($"api/{createAirlineCompanyDTO.Name}/tickets");
+            var response = await _httpClient.GetAsync($"api/airline-company/tickets");
 
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
