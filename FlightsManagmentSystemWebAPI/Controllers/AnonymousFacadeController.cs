@@ -2,6 +2,7 @@
 using BL;
 using BL.Interfaces;
 using Domain.Entities;
+using FlightsManagmentSystemWebAPI.Configuration;
 using FlightsManagmentSystemWebAPI.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -18,13 +19,29 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         private readonly IMapper _mapper;
         private readonly IAnonymousUserFacade _anonymousUserFacade;
         private readonly ILogger<AnonymousFacadeController> _logger;
+        private readonly DeparturesAndLandingConfig _departuresAndLandingConfig;
 
-        public AnonymousFacadeController(IFlightCenterSystem flightCenterSystem, IMapper mapper, ILogger<AnonymousFacadeController> logger)
+        public AnonymousFacadeController(IFlightCenterSystem flightCenterSystem, IMapper mapper, ILogger<AnonymousFacadeController> logger, DeparturesAndLandingConfig departuresAndLandingConfig)
         {
             _flightCenterSystem = flightCenterSystem;
             _mapper = mapper;
             _anonymousUserFacade = _flightCenterSystem.GetFacade<AnonymousUserFacade>();
             _logger = logger;
+            _departuresAndLandingConfig = departuresAndLandingConfig;
+        }
+
+        [HttpGet("Flights/Departures")]
+        public ActionResult<IList<FlightDetailsDTO>> GetFutureDepartures()
+        {
+            IList<Flight> flights = _anonymousUserFacade.GetFutureDepartures(_departuresAndLandingConfig.DepartureHoursPeriod);
+            if (flights.Count == 0)
+                return NoContent();
+
+            List<FlightDetailsDTO> flightDetailsDTOs = new List<FlightDetailsDTO>();
+            foreach (var flight in flights)
+                flightDetailsDTOs.Add(_mapper.Map<FlightDetailsDTO>(flight));
+
+            return Ok(flightDetailsDTOs);
         }
 
         /// <summary>

@@ -10,9 +10,9 @@ namespace FlightsManagmentSystemWebAPI.Dtos
         public long Id { get; set; }
         public AirlineCompanyDetailsDTO AirlineCompany { get; set; }
         public int OriginCountryId { get; set; }
-        public string OriginCountryName { get; set; }
+        public string OriginCountryName { get; set; }//New
         public int DestinationCountryId { get; set; }
-        public string DestinationCountryName { get; set; }
+        public string DestinationCountryName { get; set; }//New
         public DateTime DepartureTime { get; set; }
         public DateTime LandingTime { get; set; }
         public int RemainingTickets { get; set; }

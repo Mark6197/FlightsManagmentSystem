@@ -18,6 +18,6 @@ namespace BL.Interfaces
         //IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate);
         //IList<Flight> GetFlightsByLandingDate(DateTime landingDate);
         IList<Flight> SearchFlights(int originCountryId = 0, int destinationCountryId = 0, DateTime? departureDate = null, DateTime? landingDate = null);
-
+        IList<Flight> GetFutureDepartures(int departureHoursPeriod);
     }
 }

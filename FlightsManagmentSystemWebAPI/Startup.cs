@@ -1,4 +1,5 @@
 using FlightsManagmentSystemWebAPI.Authentication;
+using FlightsManagmentSystemWebAPI.Configuration;
 using FlightsManagmentSystemWebAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -37,6 +38,9 @@ namespace FlightsManagmentSystemWebAPI
 
             var jwtTokenConfig = Configuration.GetSection("jwtTokenConfig").Get<JwtTokenConfig>();//read the values required to configure the jet token from the configuration file
             services.AddSingleton(jwtTokenConfig);//register the JwtTokenConfig as a singleton
+
+            var departuresAndLandingConfig = Configuration.GetSection("departuresAndLandingConfig").Get<DeparturesAndLandingConfig>();//read the values required to configure the jet token from the configuration file
+            services.AddSingleton(departuresAndLandingConfig);//register the JwtTokenConfig as a singleton
 
             services.AddAuthentication(options =>
             {

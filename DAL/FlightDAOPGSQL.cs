@@ -351,5 +351,15 @@ namespace DAL
                 command.ExecuteNonQuery();
             }, new { Flight = flight }, conn, _logger);
         }
+
+        public IList<Flight> GetFutureDepartures(int departureHoursPeriod)
+        {
+            NpgsqlConnection conn = DbConnectionPool.Instance.GetConnection();
+            List<Flight> result = new List<Flight>();
+
+            result = Execute(() => Run_Generic_SP("sp_get_future_departures", new { _hours= departureHoursPeriod }, conn, true), new { DepartureHoursPeriod= departureHoursPeriod}, conn, _logger);
+
+            return result;
+        }
     }
 }

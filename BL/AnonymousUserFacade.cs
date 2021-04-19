@@ -87,6 +87,15 @@ namespace BL
             return result;
         }
 
+        public IList<Flight> GetFutureDepartures(int departureHoursPeriod)
+        {
+            IList<Flight> result = null;
+
+            result = Execute(() => _flightDAO.GetFutureDepartures(departureHoursPeriod), new { DepartureHoursPeriod= departureHoursPeriod }, _logger);
+
+            return result;
+        }
+
         //public IList<Flight> GetFlightsByDepatrureDate(DateTime departureDate)
         //{
         //    IList<Flight> result = null;
