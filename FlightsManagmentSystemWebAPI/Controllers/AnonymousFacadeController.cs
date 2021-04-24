@@ -38,6 +38,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
                 return NoContent();
 
             List<FlightDetailsDTO> flightDetailsDTOs = new List<FlightDetailsDTO>();
+
             foreach (var flight in flights)
                 flightDetailsDTOs.Add(_mapper.Map<FlightDetailsDTO>(flight));
 

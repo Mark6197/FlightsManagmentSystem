@@ -1,4 +1,5 @@
-﻿using BL.Exceptions;
+﻿using BL.CountriesDictionaryService;
+using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
 using DAL.Exceptions;
@@ -11,6 +12,7 @@ namespace BL
     public class LoggedInAdministratorFacade : AnonymousUserFacade, ILoggedInAdministratorFacade
     {
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private readonly CountriesManager _countriesManager = CountriesManager.Instance;
 
         public LoggedInAdministratorFacade() : base()
         {
@@ -77,6 +79,8 @@ namespace BL
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to add countries. Admin's level is {token.User.Level}");
 
                 result = (int)_countryDAO.Add(country);
+
+                _countriesManager.RefreshDictionary(token);
 
                 return result;
             }, new { Token = token, Country = country }, _logger);
@@ -155,7 +159,7 @@ namespace BL
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} (level: {token.User.Level}) now allowed to remove the following admin: {admin.User.UserName} (level {admin.Level})");
 
                 _adminDAO.Remove(admin);
-                _userDAO.Remove(admin.User); 
+                _userDAO.Remove(admin.User);
             }, new { Token = token, Administrator = admin }, _logger);
         }
 
@@ -195,6 +199,8 @@ namespace BL
                     throw new NotAllowedAdminActionException($"Admin {token.User.User.UserName} now allowed to remove countries. Admin's level is {token.User.Level}");
 
                 _countryDAO.Remove(country);
+
+                _countriesManager.RefreshDictionary(token);
             }, new { Token = token, Country = country }, _logger);
         }
 
@@ -243,7 +249,13 @@ namespace BL
 
         public void UpdateCountryDetails(LoginToken<Administrator> token, Country country)
         {
-            Execute(() => _countryDAO.Update(country), new { Token = token, Country = country }, _logger);
+            Execute(() =>
+            {
+                _countryDAO.Update(country);
+
+                _countriesManager.RefreshDictionary(token);
+            },
+            new { Token = token, Country = country }, _logger);
         }
 
         public void UpdateCustomerDetails(LoginToken<Administrator> token, Customer customer)
