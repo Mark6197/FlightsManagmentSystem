@@ -70,8 +70,8 @@ namespace FlightsManagmentSystemWebAPI_Tests
             Assert.AreEqual(HttpStatusCode.OK, response2.StatusCode);
 
             var responseContent2 = await response2.Content.ReadAsStringAsync();
-            FlightDetailsDTO flightGetResult = JsonSerializer.Deserialize<FlightDetailsDTO>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            TestHelpers.CompareProps(flightGetResult, mapperService.Map<FlightDetailsDTO>(flightPostResult));
+            FlightDetailsDTO flightGetResult = JsonSerializer.Deserialize<FlightDetailsDTO>(responseContent2, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            TestHelpers.CompareProps(flightGetResult, mapperService.Map<FlightDetailsDTO>(flightPostResult),true);
         }
 
         [TestMethod]

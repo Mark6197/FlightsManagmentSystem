@@ -1,5 +1,8 @@
+using AutoMapper;
 using FlightsManagmentSystemWebAPI.Authentication;
 using FlightsManagmentSystemWebAPI.Configuration;
+using FlightsManagmentSystemWebAPI.CountriesManagerService;
+using FlightsManagmentSystemWebAPI.Mappers;
 using FlightsManagmentSystemWebAPI.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -28,6 +31,18 @@ namespace FlightsManagmentSystemWebAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<ICountriesManager, CountriesManager>();
+
+            services.AddSingleton(provider => new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile(new FlightProfile(provider.GetService<ICountriesManager>()));
+                cfg.AddProfile(new TicketProfile());
+                cfg.AddProfile(new AdministratorProfile());
+                cfg.AddProfile(new CustomerProfile());
+                cfg.AddProfile(new UserProfile());
+                cfg.AddProfile(new AirlineCompanyProfile());
+                cfg.AddProfile(new CountryProfile());
+            }).CreateMapper());
 
             services.AddControllers()
                 .ConfigureApiBehaviorOptions(options =>
@@ -88,11 +103,15 @@ namespace FlightsManagmentSystemWebAPI
                     {securityScheme, new string[] { }}
                 });
 
+                //Read the comments from the xml file that is being auto genrated on build,
+                //this file includes the comments from the contollers
+                //We configure to auto genreate the file in csproj file: <GenerateDocumentationFile>true</GenerateDocumentationFile>
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
 
+            //Add cors policy to expose all the endpoints in the web api to any origin (might restrict it later to specific origin)
             services.AddCors(o => o.AddPolicy("CorsPolicy", builder =>
             {
                 builder.AllowAnyOrigin()
@@ -115,8 +134,10 @@ namespace FlightsManagmentSystemWebAPI
                 });
             }
 
+            //Use the cors policy defined in ConfigureServices
             app.UseCors("CorsPolicy");
 
+            //Use the custom logging middleware
             app.UseMiddleware<RequestResponseLoggingMiddleware>();
 
             app.UseHttpsRedirection();

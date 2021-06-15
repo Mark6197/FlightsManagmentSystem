@@ -5,6 +5,7 @@ using BL.Interfaces;
 using BL.LoginService;
 using DAL.Exceptions;
 using Domain.Entities;
+using FlightsManagmentSystemWebAPI.CountriesManagerService;
 using FlightsManagmentSystemWebAPI.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -25,14 +26,16 @@ namespace FlightsManagmentSystemWebAPI.Controllers
         private readonly ILoggedInAdministratorFacade _loggedInAdministratorFacade;
         private readonly LinkGenerator _linkGenerator;
         private readonly ILogger<AdministratorFacadeController> _logger;
+        private readonly ICountriesManager _countriesManager;
 
-        public AdministratorFacadeController(IFlightCenterSystem flightCenterSystem, IMapper mapper, LinkGenerator linkGenerator, ILogger<AdministratorFacadeController> logger)
+        public AdministratorFacadeController(IFlightCenterSystem flightCenterSystem, IMapper mapper, LinkGenerator linkGenerator, ILogger<AdministratorFacadeController> logger, ICountriesManager countriesManager)
         {
             _flightCenterSystem = flightCenterSystem;
             _mapper = mapper;
             _loggedInAdministratorFacade = _flightCenterSystem.GetFacade<LoggedInAdministratorFacade>();
             _linkGenerator = linkGenerator;
             _logger = logger;
+            _countriesManager = countriesManager;
         }
 
         /// <summary>
@@ -394,6 +397,8 @@ namespace FlightsManagmentSystemWebAPI.Controllers
                 if (country.Id == 0)
                     return Conflict();
 
+                _countriesManager.SetCountry(admin_token, country);
+
                 uri = _linkGenerator.GetPathByAction(nameof(AnonymousFacadeController.GetCountryById), "AnonymousFacade", new { id = country.Id });
             }
             catch (RecordAlreadyExistsException)
@@ -530,6 +535,8 @@ namespace FlightsManagmentSystemWebAPI.Controllers
             try
             {
                 _loggedInAdministratorFacade.UpdateCountryDetails(admin_token, country);
+
+                _countriesManager.SetCountry(admin_token, country);
             }
             catch (RecordAlreadyExistsException)
             {
@@ -587,6 +594,7 @@ namespace FlightsManagmentSystemWebAPI.Controllers
             try
             {
                 _loggedInAdministratorFacade.RemoveCountry(admin_token, country);
+                _countriesManager.RemoveCountry(admin_token, country);
             }
             catch (NotAllowedAdminActionException)
             {

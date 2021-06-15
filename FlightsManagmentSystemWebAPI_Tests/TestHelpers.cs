@@ -166,7 +166,7 @@ namespace FlightsManagmentSystemWebAPI_Tests
             for (int i = 0; i < props_a.Length; i++)
             {
                 Type prop_type = props_a[i].PropertyType;
-                if (ignore_user && prop_type == typeof(User))
+                if (ignore_user && prop_type == typeof(UserDetailsDTO))
                     continue;
 
                 if (prop_type.GetInterfaces().Contains(typeof(IPoco)) || prop_type.GetInterfaces().Contains(typeof(IDetailsDTO)))

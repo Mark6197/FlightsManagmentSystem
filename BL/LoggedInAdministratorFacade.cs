@@ -1,5 +1,4 @@
-﻿using BL.CountriesDictionaryService;
-using BL.Exceptions;
+﻿using BL.Exceptions;
 using BL.Interfaces;
 using BL.LoginService;
 using DAL.Exceptions;
@@ -12,7 +11,6 @@ namespace BL
     public class LoggedInAdministratorFacade : AnonymousUserFacade, ILoggedInAdministratorFacade
     {
         private static readonly log4net.ILog _logger = log4net.LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
-        private readonly CountriesManager _countriesManager = CountriesManager.Instance;
 
         public LoggedInAdministratorFacade() : base()
         {
@@ -80,7 +78,7 @@ namespace BL
 
                 result = (int)_countryDAO.Add(country);
 
-                _countriesManager.RefreshDictionary(token);
+                country.Id = result;
 
                 return result;
             }, new { Token = token, Country = country }, _logger);
@@ -200,7 +198,6 @@ namespace BL
 
                 _countryDAO.Remove(country);
 
-                _countriesManager.RefreshDictionary(token);
             }, new { Token = token, Country = country }, _logger);
         }
 
@@ -252,8 +249,6 @@ namespace BL
             Execute(() =>
             {
                 _countryDAO.Update(country);
-
-                _countriesManager.RefreshDictionary(token);
             },
             new { Token = token, Country = country }, _logger);
         }

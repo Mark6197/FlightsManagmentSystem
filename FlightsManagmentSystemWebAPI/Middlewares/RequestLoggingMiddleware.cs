@@ -46,11 +46,14 @@ namespace FlightsManagmentSystemWebAPI.Middlewares
 
         private async Task LogResponse(HttpContext context)
         {
+            //The trick to reading the response body is replacing the stream being used with a new MemoryStream
+            //and then copying the data back to the original body steam. I don’t know how much this affects performance
+            //and would need study how it scales before using it in a production environment.
             var originalBodyStream = context.Response.Body;
             await using var responseBody = _recyclableMemoryStreamManager.GetStream();
             context.Response.Body = responseBody;
-            await _next(context);
-            context.Response.Body.Seek(0, SeekOrigin.Begin);
+            await _next(context);//Execute the next bit of middleware in the pipeline
+                                 //Will wait here until the rest of the pipeline has run and then start log the response            context.Response.Body.Seek(0, SeekOrigin.Begin);
             var text = await new StreamReader(context.Response.Body).ReadToEndAsync();
             context.Response.Body.Seek(0, SeekOrigin.Begin);
             _logger.LogInformation($"Http Response Information:{Environment.NewLine}" +
